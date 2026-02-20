@@ -3,15 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello World Cross-Device</title>
+  <title>Gestione Ordini Bar</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1 id="titolo">Hello World!</h1>
-    <button id="btn">Cliccami</button>
+    <div id="home">
+      <button id="startBtn">Inizia</button>
+    </div>
+    <div id="step" class="hidden">
+      <div class="header">
+        <div id="categoriaNome"></div>
+        <div>
+          <button id="indietroBtn">Indietro</button>
+          <button id="avantiBtn">Avanti</button>
+        </div>
+      </div>
+      <div id="prodottiContainer"></div>
+    </div>
+    <div id="riepilogo" class="hidden">
+      <textarea id="messaggioFinale" readonly></textarea>
+      <button id="copiaBtn">Copia Messaggio</button>
+      <button id="whatsappBtn">Apri WhatsApp</button>
+    </div>
   </div>
-
+  <script src="data/fornitori.js"></script>
+  <script src="data/categorie.js"></script>
+  <script src="data/prodotti.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
