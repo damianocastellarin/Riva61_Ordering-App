@@ -1,15 +1,45 @@
-body {
+/* Reset globale */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
   font-family: Arial, sans-serif;
+}
+
+/* Layout centrale */
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f0f0f0;
+}
+
+.container {
   text-align: center;
-  margin-top: 50px;
 }
 
+/* Titolo */
 h1 {
-  color: darkblue;
+  color: #1a1a1a;
+  margin-bottom: 20px;
+  font-size: 24px;
 }
 
+/* Bottone uniforme su tutti i dispositivi */
 button {
-  padding: 10px 20px;
+  all: unset; /* rimuove stili browser di default */
+  display: inline-block;
+  padding: 12px 24px;
   font-size: 16px;
+  background-color: #007bff;
+  color: white;
+  border-radius: 6px;
+  text-align: center;
   cursor: pointer;
+  user-select: none;
+}
+
+button:active {
+  background-color: #0056b3;
 }
