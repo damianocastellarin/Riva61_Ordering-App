@@ -2,15 +2,21 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Gestione Ordini Bar</title>
-  <link rel="stylesheet" href="style.css">
+
+  <link rel="stylesheet" href="styles/reset.css">
+  <link rel="stylesheet" href="styles/layout.css">
+
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#007bff">
 </head>
 <body>
   <div class="container">
     <div id="home">
       <button id="startBtn">Inizia</button>
     </div>
+
     <div id="step" class="hidden">
       <div class="header">
         <div id="categoriaNome"></div>
@@ -21,15 +27,29 @@
       </div>
       <div id="prodottiContainer"></div>
     </div>
+
     <div id="riepilogo" class="hidden">
       <textarea id="messaggioFinale" readonly></textarea>
       <button id="copiaBtn">Copia Messaggio</button>
       <button id="whatsappBtn">Apri WhatsApp</button>
+      <button id="riepilogoIndietroBtn">Indietro</button>
     </div>
   </div>
-  <script src="data/fornitori.js"></script>
-  <script src="data/categorie.js"></script>
-  <script src="data/prodotti.js"></script>
-  <script src="app.js"></script>
+
+  <script type="module" src="data/fornitori.js"></script>
+  <script type="module" src="data/categorie.js"></script>
+  <script type="module" src="data/prodotti.js"></script>
+
+  <script type="module" src="js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('Service Worker registrato', reg))
+          .catch(err => console.error('Service Worker fallito', err));
+      });
+    }
+  </script>
 </body>
 </html>

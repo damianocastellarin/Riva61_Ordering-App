@@ -1,4 +1,5 @@
-const PRODOTTI = [
+// data/prodotti.js
+export const PRODOTTI = [
   { id: 1, nome: "CocaCola", categoria: 1, fornitore: 1 },
   { id: 2, nome: "Fanta", categoria: 1, fornitore: 1 },
   { id: 3, nome: "Mele", categoria: 2, fornitore: 2 },
