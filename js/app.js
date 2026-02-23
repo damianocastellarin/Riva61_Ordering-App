@@ -29,13 +29,6 @@ document.getElementById("avantiBtn").addEventListener("click", () => {
     state.risposte[inp.dataset.id] = inp.value || 0;
   });
 
-riepilogoIndietroBtn.addEventListener("click", () => {
-  riepilogoDiv.classList.add("hidden");
-  stepDiv.classList.remove("hidden");
-  state.stepIndex = CATEGORIE.length - 1;
-  renderStep(state);
-});
-
   state.stepIndex++;
   if (state.stepIndex >= CATEGORIE.length) {
     const mess = generaMessaggio(state.risposte);
@@ -47,9 +40,24 @@ riepilogoIndietroBtn.addEventListener("click", () => {
   }
 });
 
-document.getElementById("copiaBtn").addEventListener("click", () => {
-  messaggioFinale.select();
-  document.execCommand("copy");
+riepilogoIndietroBtn.addEventListener("click", () => {
+  riepilogoDiv.classList.add("hidden");
+  stepDiv.classList.remove("hidden");
+  state.stepIndex = CATEGORIE.length - 1;
+  renderStep(state);
+});
+
+document.getElementById("copiaBtn").addEventListener("click", async () => {
+  try {
+    await navigator.clipboard.writeText(messaggioFinale.value);
+    const originalText = document.getElementById("copiaBtn").textContent;
+    document.getElementById("copiaBtn").textContent = "Copiato!";
+    setTimeout(() => {
+      document.getElementById("copiaBtn").textContent = originalText;
+    }, 2000);
+  } catch (err) {
+    console.error("Errore nel copia:", err);
+  }
 });
 
 document.getElementById("whatsappBtn").addEventListener("click", () => {
