@@ -1,4 +1,3 @@
-// data/prodotti.js
 export const PRODOTTI = [
   { id: 1, nome: "CocaCola", categoria: 1, fornitore: 1 },
   { id: 2, nome: "Fanta", categoria: 1, fornitore: 1 },

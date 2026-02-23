@@ -1,4 +1,3 @@
-// data/categorie.js
 export const CATEGORIE = [
   { id: 1, nome: "Bibite" },
   { id: 2, nome: "Frutta" },
