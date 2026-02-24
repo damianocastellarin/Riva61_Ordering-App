@@ -9,7 +9,8 @@ export function generaMessaggio(risposte) {
     const prodottiF = PRODOTTI.filter(p => p.fornitore === f.id);
     const prodottiTesto = prodottiF
       .map(p => {
-        const qta = risposte[p.id] || 0;
+        const val = risposte[p.id];
+        const qta = (val !== "" && val !== null) ? parseInt(val, 10) : 0;
         return qta > 0 ? `• ${qta} x ${p.nome}` : null;
       })
       .filter(x => x);
