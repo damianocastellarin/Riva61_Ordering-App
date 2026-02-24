@@ -35,6 +35,11 @@
   border-radius: 12px;
   margin-bottom: 10px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: background 0.3s ease;
+}
+
+.input-row.filled {
+  background: #c8e6c9;
 }
 
 label {

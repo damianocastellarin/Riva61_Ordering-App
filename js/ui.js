@@ -16,6 +16,11 @@ export function renderStep(state) {
   PRODOTTI.filter(p => p.categoria === categoria.id).forEach(p => {
     const div = document.createElement("div");
     div.classList.add("input-row");
+    
+    if (state.risposte[p.id] > 0) {
+      div.classList.add("filled");
+    }
+
     const inputId = `prodotto-${p.id}`;
 
     const label = document.createElement("label");
@@ -35,6 +40,12 @@ export function renderStep(state) {
       v = v.replace(/[^0-9]/g, "");
       if (v.length > 2) v = v.slice(0, 2);
       e.target.value = v;
+
+      if (parseInt(v, 10) > 0) {
+        div.classList.add("filled");
+      } else {
+        div.classList.remove("filled");
+      }
     });
 
     div.appendChild(label);
