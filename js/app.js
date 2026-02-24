@@ -8,10 +8,12 @@ const stepDiv = document.getElementById("step");
 const riepilogoDiv = document.getElementById("riepilogo");
 const messaggioFinale = document.getElementById("messaggioFinale");
 const riepilogoIndietroBtn = document.getElementById("riepilogoIndietroBtn");
+const progressContainer = document.getElementById("progressContainer"); // Recuperiamo la barra
 
 document.getElementById("startBtn").addEventListener("click", () => {
   home.classList.add("hidden");
   stepDiv.classList.remove("hidden");
+  if (progressContainer) progressContainer.classList.remove("hidden"); 
   state.stepIndex = 0;
   renderStep(state);
 });
@@ -36,6 +38,7 @@ document.getElementById("avantiBtn").addEventListener("click", () => {
     messaggioFinale.value = mess;
     stepDiv.classList.add("hidden");
     riepilogoDiv.classList.remove("hidden");
+    if (progressContainer) progressContainer.classList.add("hidden"); 
   } else {
     renderStep(state);
   }
@@ -44,6 +47,7 @@ document.getElementById("avantiBtn").addEventListener("click", () => {
 riepilogoIndietroBtn.addEventListener("click", () => {
   riepilogoDiv.classList.add("hidden");
   stepDiv.classList.remove("hidden");
+  if (progressContainer) progressContainer.classList.remove("hidden"); 
   state.stepIndex = CATEGORIE.length - 1;
   renderStep(state);
 });
