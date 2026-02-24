@@ -24,7 +24,8 @@ document.getElementById("indietroBtn").addEventListener("click", () => {
 });
 
 document.getElementById("avantiBtn").addEventListener("click", () => {
-  const inputs = document.getElementById("prodottiContainer").querySelectorAll("input");
+  const container = document.getElementById("prodottiContainer");
+  const inputs = container.querySelectorAll("input");
   inputs.forEach(inp => {
     state.risposte[inp.dataset.id] = inp.value || 0;
   });

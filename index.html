@@ -2,8 +2,14 @@
 <html lang="it">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Gestione Ordini Bar</title>
+  
+  <link rel="modulepreload" href="js/app.js">
+  <link rel="modulepreload" href="js/state.js">
+  <link rel="modulepreload" href="js/ui.js">
+  <link rel="modulepreload" href="js/orderBuilder.js">
+
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="manifest" href="manifest.json">
@@ -12,30 +18,29 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-  <div class="container">
-    <div id="home">
+  <main class="container"> <div id="home">
       <h1 style="text-align:center; margin-bottom:20px;">Ordini Bar</h1>
       <button id="startBtn">Inizia Nuovo Ordine</button>
     </div>
 
     <div id="step" class="hidden">
-      <div class="header">
+      <header class="header">
         <h2 id="categoriaNome"></h2>
         <div class="nav-buttons">
           <button id="indietroBtn" class="btn-small">Indietro</button>
           <button id="avantiBtn" class="btn-small">Avanti</button>
         </div>
-      </div>
+      </header>
       <div id="prodottiContainer"></div>
     </div>
 
     <div id="riepilogo" class="hidden">
-      <textarea id="messaggioFinale" readonly></textarea>
+      <textarea id="messaggioFinale" aria-label="Riepilogo dell'ordine completo" readonly></textarea>
       <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
       <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
       <button id="riepilogoIndietroBtn" class="btn-secondary">Torna alla modifica</button>
     </div>
-  </div>
+  </main>
 
   <script type="module" src="js/app.js"></script>
 
