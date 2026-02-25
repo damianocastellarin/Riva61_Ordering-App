@@ -169,3 +169,46 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
+
+.update-toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #2e7d32;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  z-index: 10000;
+  width: 90%;
+  max-width: 400px;
+  justify-content: space-between;
+  animation: slideUp 0.4s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translate(-50%, 100px); opacity: 0; }
+  to { transform: translate(-50%, 0); opacity: 1; }
+}
+
+#updateBtn {
+  background-color: white;
+  color: #2e7d32;
+  border: none;
+  padding: 6px 15px;
+  border-radius: 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  cursor: pointer;
+  width: auto;
+  min-height: auto;
+  margin-bottom: 0;
+}
+
+#updateBtn:active {
+  transform: scale(0.95);
+}
