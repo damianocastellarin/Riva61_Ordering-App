@@ -11,17 +11,6 @@ const riepilogoIndietroBtn = document.getElementById("riepilogoIndietroBtn");
 const nuovoOrdineBtn = document.getElementById("nuovoOrdineBtn");
 const progressContainer = document.getElementById("progressContainer");
 
-function salvaStatoCorrente() {
-  const container = document.getElementById("prodottiContainer");
-  const inputs = container.querySelectorAll("input");
-  
-  inputs.forEach(inp => {
-    state.risposte[inp.dataset.id] = inp.value || 0;
-  });
-  
-  localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
-}
-
 function ripristinaDaLocale() {
   const datiSalvati = localStorage.getItem("ordine_bar_salvato");
   if (datiSalvati) {
@@ -58,7 +47,6 @@ document.getElementById("startBtn").addEventListener("click", () => {
 
 document.getElementById("indietroBtn").addEventListener("click", () => {
   if (state.stepIndex > 0) {
-    salvaStatoCorrente();
     state.stepIndex--;
     renderStep(state);
     localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
@@ -66,8 +54,6 @@ document.getElementById("indietroBtn").addEventListener("click", () => {
 });
 
 document.getElementById("avantiBtn").addEventListener("click", () => {
-  salvaStatoCorrente();
-
   state.stepIndex++;
   localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
 

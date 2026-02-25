@@ -2,9 +2,7 @@ import { PRODOTTI } from "../data/prodotti.js";
 import { CATEGORIE } from "../data/categorie.js";
 
 export function renderStep(state) {
-  if (state.stepIndex < 0 || state.stepIndex >= CATEGORIE.length) {
-    return;
-  }
+  if (state.stepIndex < 0 || state.stepIndex >= CATEGORIE.length) return;
 
   const categoria = CATEGORIE[state.stepIndex];
   if (!categoria) return;
@@ -31,7 +29,7 @@ export function renderStep(state) {
     const div = document.createElement("div");
     div.classList.add("input-row");
     
-    if (state.risposte[p.id] > 0) div.classList.add("filled");
+    if (parseInt(state.risposte[p.id], 10) > 0) div.classList.add("filled");
 
     const inputId = `prodotto-${p.id}`;
     const label = document.createElement("label");
@@ -43,13 +41,18 @@ export function renderStep(state) {
     input.id = inputId;
     input.inputMode = "numeric";
     input.pattern = "[0-9]*";
-    input.value = state.risposte[p.id] || "";
+    
+    const savedValue = state.risposte[p.id];
+    input.value = (savedValue && savedValue !== "0" && savedValue !== 0) ? savedValue : "";
     input.dataset.id = p.id;
 
     input.addEventListener("input", (e) => {
       let v = e.target.value.replace(/[^0-9]/g, "");
       if (v.length > 2) v = v.slice(0, 2);
       e.target.value = v;
+
+      state.risposte[p.id] = v || 0;
+      localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
 
       if (parseInt(v, 10) > 0) {
         div.classList.add("filled");
