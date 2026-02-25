@@ -38,60 +38,13 @@
       <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
     </div>
   </main>
-  <div id="updateToast" class="update-toast hidden">
-    <span>Nuova versione disponibile!</span>
-    <button id="updateBtn">Aggiorna</button>
-  </div>
+
   <script type="module" src="js/app.js"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      let refreshing = false;
-
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          window.location.reload();
-          refreshing = true;
-        }
-      });
-
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js').then(reg => {
-          const checkUpdate = (registration) => {
-            if (registration.waiting) {
-              showUpdateToast(registration.waiting);
-            }
-          };
-
-          checkUpdate(reg);
-
-          reg.addEventListener('updatefound', () => {
-            const newWorker = reg.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                showUpdateToast(newWorker);
-              }
-            });
-          });
-
-          setInterval(() => {
-            reg.update();
-          }, 1000 * 60 * 30);
-        });
-      });
-    }
-
-    function showUpdateToast(worker) {
-      const toast = document.getElementById('updateToast');
-      const btn = document.getElementById('updateBtn');
-      toast.classList.remove('hidden');
-      
-      const newBtn = btn.cloneNode(true);
-      btn.parentNode.replaceChild(newBtn, btn);
-
-      newBtn.addEventListener('click', () => {
-        worker.postMessage('SKIP_WAITING');
-        newBtn.disabled = true;
-        newBtn.textContent = 'Aggiornamento...';
+        navigator.serviceWorker.register('service-worker.js')
+          .catch(err => console.error("Errore SW:", err));
       });
     }
 
