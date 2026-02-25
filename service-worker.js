@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v3';
+const CACHE_NAME = 'ordini-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
@@ -38,13 +38,13 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
+
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (event.request.method === 'GET') {
-          const resClone = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
-        }
+        const resClone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
         return response;
       })
       .catch(() => caches.match(event.request))
