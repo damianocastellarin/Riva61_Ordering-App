@@ -128,3 +128,13 @@ button:disabled {
   color: #adb5bd;
   cursor: not-allowed;
 }
+
+.btn-danger {
+  background-color: #dc3545;
+  color: white;
+  margin-top: 10px;
+}
+
+#nuovoOrdineBtn {
+  border: 2px solid rgba(0,0,0,0.1);
+}

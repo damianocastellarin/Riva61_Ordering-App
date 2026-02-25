@@ -1,4 +1,4 @@
-import { state } from "./state.js";
+import { state, resetState } from "./state.js";
 import { CATEGORIE } from "../data/categorie.js";
 import { renderStep } from "./ui.js";
 import { generaMessaggio } from "./orderBuilder.js";
@@ -8,9 +8,31 @@ const stepDiv = document.getElementById("step");
 const riepilogoDiv = document.getElementById("riepilogo");
 const messaggioFinale = document.getElementById("messaggioFinale");
 const riepilogoIndietroBtn = document.getElementById("riepilogoIndietroBtn");
-const progressContainer = document.getElementById("progressContainer"); // Recuperiamo la barra
+const nuovoOrdineBtn = document.getElementById("nuovoOrdineBtn");
+const progressContainer = document.getElementById("progressContainer");
+
+function salvaInLocale() {
+  localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+}
+
+function ripristinaDaLocale() {
+  const datiSalvati = localStorage.getItem("ordine_bar_salvato");
+  if (datiSalvati) {
+    const backup = JSON.parse(datiSalvati);
+    state.stepIndex = backup.stepIndex;
+    state.risposte = backup.risposte;
+    
+    home.classList.add("hidden");
+    stepDiv.classList.remove("hidden");
+    if (progressContainer) progressContainer.classList.remove("hidden");
+    renderStep(state);
+  }
+}
+
+ripristinaDaLocale();
 
 document.getElementById("startBtn").addEventListener("click", () => {
+  resetState();
   home.classList.add("hidden");
   stepDiv.classList.remove("hidden");
   if (progressContainer) progressContainer.classList.remove("hidden"); 
@@ -22,17 +44,21 @@ document.getElementById("indietroBtn").addEventListener("click", () => {
   if (state.stepIndex > 0) {
     state.stepIndex--;
     renderStep(state);
+    salvaInLocale();
   }
 });
 
 document.getElementById("avantiBtn").addEventListener("click", () => {
   const container = document.getElementById("prodottiContainer");
   const inputs = container.querySelectorAll("input");
+  
   inputs.forEach(inp => {
     state.risposte[inp.dataset.id] = inp.value || 0;
   });
 
   state.stepIndex++;
+  salvaInLocale();
+
   if (state.stepIndex >= CATEGORIE.length) {
     const mess = generaMessaggio(state.risposte);
     messaggioFinale.value = mess;
@@ -52,41 +78,30 @@ riepilogoIndietroBtn.addEventListener("click", () => {
   renderStep(state);
 });
 
+document.getElementById("whatsappBtn").addEventListener("click", () => {
+  const testo = encodeURIComponent(messaggioFinale.value);
+  window.open(`https://wa.me/?text=${testo}`, "_blank");
+});
+
 document.getElementById("copiaBtn").addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(messaggioFinale.value);
-    const originalText = document.getElementById("copiaBtn").textContent;
-    document.getElementById("copiaBtn").textContent = "Copiato!";
+    const btn = document.getElementById("copiaBtn");
+    const originalText = btn.textContent;
+    btn.textContent = "Copiato!";
     setTimeout(() => {
-      document.getElementById("copiaBtn").textContent = originalText;
+      btn.textContent = originalText;
     }, 2000);
   } catch (err) {
     console.error("Errore nel copia:", err);
   }
 });
 
-document.getElementById("whatsappBtn").addEventListener("click", () => {
-  const testo = encodeURIComponent(messaggioFinale.value);
-  window.open(`https://wa.me/?text=${testo}`, "_blank");
-});
-
-let ordineCompletato = false;
-
-window.addEventListener("beforeunload", (e) => {
-  const haDati = Object.values(state.risposte).some(v => parseInt(v, 10) > 0);
-  
-  if (haDati && !ordineCompletato) {
-    e.preventDefault();
-    e.returnValue = "Hai un ordine in corso. Vuoi davvero uscire?"; 
+nuovoOrdineBtn.addEventListener("click", () => {
+  if (confirm("Vuoi cancellare questo ordine e iniziarne uno nuovo?")) {
+    resetState();
+    riepilogoDiv.classList.add("hidden");
+    home.classList.remove("hidden");
+    if (progressContainer) progressContainer.classList.add("hidden");
   }
-});
-
-document.getElementById("whatsappBtn").addEventListener("click", () => {
-  ordineCompletato = true;
-  const testo = encodeURIComponent(messaggioFinale.value);
-  window.open(`https://wa.me/?text=${testo}`, "_blank");
-});
-
-document.getElementById("startBtn").addEventListener("click", () => {
-  ordineCompletato = false;
 });

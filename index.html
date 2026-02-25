@@ -35,9 +35,22 @@
       <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
       <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
       <button id="riepilogoIndietroBtn" class="btn-secondary">Torna alla modifica</button>
+      <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
     </div>
   </main>
 
   <script type="module" src="js/app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => {
+            reg.update();
+          })
+          .catch(err => console.error("Errore SW:", err));
+      });
+    }
+  </script>
 </body>
 </html>
