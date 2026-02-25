@@ -45,11 +45,17 @@ export function renderStep(state) {
     input.dataset.id = p.id;
 
     const updateValue = (newValue) => {
-      let v = parseInt(newValue, 10);
-      if (isNaN(v) || v <= 0) v = 0;
-      if (v > 99) v = 99;
+      let rawValue = newValue.toString().replace(/[^0-9]/g, "");
 
+      if (rawValue.length > 2) {
+        rawValue = rawValue.substring(0, 2);
+      }
+
+      let v = parseInt(rawValue, 10);
+      if (isNaN(v) || v <= 0) v = 0;
+      
       state.risposte[p.id] = v;
+      
       input.value = v > 0 ? v : "";
       
       if (v > 0) div.classList.add("filled");
@@ -61,15 +67,21 @@ export function renderStep(state) {
     const btnMinus = document.createElement("button");
     btnMinus.textContent = "-";
     btnMinus.classList.add("btn-qty");
-    btnMinus.onclick = () => updateValue(parseInt(state.risposte[p.id] || 0, 10) - 1);
+    btnMinus.onclick = () => {
+      let currentV = parseInt(state.risposte[p.id] || 0, 10);
+      if (currentV > 0) updateValue(currentV - 1);
+    };
 
     const btnPlus = document.createElement("button");
     btnPlus.textContent = "+";
     btnPlus.classList.add("btn-qty");
-    btnPlus.onclick = () => updateValue(parseInt(state.risposte[p.id] || 0, 10) + 1);
+    btnPlus.onclick = () => {
+      let currentV = parseInt(state.risposte[p.id] || 0, 10);
+      if (currentV < 99) updateValue(currentV + 1);
+    };
 
     input.addEventListener("input", (e) => {
-      updateValue(e.target.value.replace(/[^0-9]/g, ""));
+      updateValue(e.target.value);
     });
 
     controls.appendChild(btnMinus);
