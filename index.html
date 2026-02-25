@@ -57,6 +57,13 @@
           });
           if (reg.waiting) showUpdateToast(reg.waiting);
           reg.update();
+
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+              reg.update();
+            }
+          });
+
         }).catch(err => {
           console.error("Errore SW:", err);
           if (err.name === 'SecurityError') location.reload();
