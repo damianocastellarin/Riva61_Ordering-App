@@ -23,9 +23,18 @@ function ripristinaDaLocale() {
     state.risposte = backup.risposte;
     
     home.classList.add("hidden");
-    stepDiv.classList.remove("hidden");
-    if (progressContainer) progressContainer.classList.remove("hidden");
-    renderStep(state);
+
+    if (state.stepIndex >= CATEGORIE.length) {
+      const mess = generaMessaggio(state.risposte);
+      messaggioFinale.value = mess;
+      riepilogoDiv.classList.remove("hidden");
+      stepDiv.classList.add("hidden");
+      if (progressContainer) progressContainer.classList.add("hidden");
+    } else {
+      stepDiv.classList.remove("hidden");
+      if (progressContainer) progressContainer.classList.remove("hidden");
+      renderStep(state);
+    }
   }
 }
 

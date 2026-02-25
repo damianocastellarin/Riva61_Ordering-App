@@ -2,6 +2,10 @@ import { PRODOTTI } from "../data/prodotti.js";
 import { CATEGORIE } from "../data/categorie.js";
 
 export function renderStep(state) {
+  if (state.stepIndex < 0 || state.stepIndex >= CATEGORIE.length) {
+    return;
+  }
+
   const categoria = CATEGORIE[state.stepIndex];
   if (!categoria) return;
 
