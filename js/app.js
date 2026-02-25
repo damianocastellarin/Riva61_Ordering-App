@@ -69,3 +69,24 @@ document.getElementById("whatsappBtn").addEventListener("click", () => {
   const testo = encodeURIComponent(messaggioFinale.value);
   window.open(`https://wa.me/?text=${testo}`, "_blank");
 });
+
+let ordineCompletato = false;
+
+window.addEventListener("beforeunload", (e) => {
+  const haDati = Object.values(state.risposte).some(v => parseInt(v, 10) > 0);
+  
+  if (haDati && !ordineCompletato) {
+    e.preventDefault();
+    e.returnValue = "Hai un ordine in corso. Vuoi davvero uscire?"; 
+  }
+});
+
+document.getElementById("whatsappBtn").addEventListener("click", () => {
+  ordineCompletato = true;
+  const testo = encodeURIComponent(messaggioFinale.value);
+  window.open(`https://wa.me/?text=${testo}`, "_blank");
+});
+
+document.getElementById("startBtn").addEventListener("click", () => {
+  ordineCompletato = false;
+});
