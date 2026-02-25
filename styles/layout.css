@@ -130,10 +130,9 @@ button:disabled {
 }
 
 .btn-danger {
-  background-color: #dc3545;
+  background-color: #000;
   color: white;
   margin-top: 10px;
-  border: none;
 }
 
 #nuovoOrdineBtn {
