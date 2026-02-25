@@ -12,25 +12,31 @@ const nuovoOrdineBtn = document.getElementById("nuovoOrdineBtn");
 const progressContainer = document.getElementById("progressContainer");
 
 function ripristinaDaLocale() {
-  const datiSalvati = localStorage.getItem("ordine_bar_salvato");
-  if (datiSalvati) {
-    const backup = JSON.parse(datiSalvati);
-    state.stepIndex = backup.stepIndex;
-    state.risposte = backup.risposte;
-    
-    home.classList.add("hidden");
-
-    if (state.stepIndex >= CATEGORIE.length) {
-      const mess = generaMessaggio(state.risposte);
-      messaggioFinale.value = mess;
-      riepilogoDiv.classList.remove("hidden");
-      stepDiv.classList.add("hidden");
-      if (progressContainer) progressContainer.classList.add("hidden");
-    } else {
-      stepDiv.classList.remove("hidden");
-      if (progressContainer) progressContainer.classList.remove("hidden");
-      renderStep(state);
+  try {
+    const datiSalvati = localStorage.getItem("ordine_bar_salvato");
+    if (datiSalvati) {
+      const backup = JSON.parse(datiSalvati);
+      if (!backup.risposte || typeof backup.stepIndex !== 'number') {
+        resetState();
+        return;
+      }
+      state.stepIndex = backup.stepIndex;
+      state.risposte = backup.risposte;
+      home.classList.add("hidden");
+      if (state.stepIndex >= CATEGORIE.length) {
+        const mess = generaMessaggio(state.risposte);
+        messaggioFinale.value = mess;
+        riepilogoDiv.classList.remove("hidden");
+        stepDiv.classList.add("hidden");
+        if (progressContainer) progressContainer.classList.add("hidden");
+      } else {
+        stepDiv.classList.remove("hidden");
+        if (progressContainer) progressContainer.classList.remove("hidden");
+        renderStep(state);
+      }
     }
+  } catch (e) {
+    resetState();
   }
 }
 
@@ -56,7 +62,6 @@ document.getElementById("indietroBtn").addEventListener("click", () => {
 document.getElementById("avantiBtn").addEventListener("click", () => {
   state.stepIndex++;
   localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
-
   if (state.stepIndex >= CATEGORIE.length) {
     const mess = generaMessaggio(state.risposte);
     messaggioFinale.value = mess;
@@ -78,7 +83,12 @@ riepilogoIndietroBtn.addEventListener("click", () => {
 
 document.getElementById("whatsappBtn").addEventListener("click", () => {
   const testo = encodeURIComponent(messaggioFinale.value);
-  window.open(`https://wa.me/?text=${testo}`, "_blank");
+  const url = `https://wa.me/?text=${testo}`;
+  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    window.location.href = url;
+  } else {
+    window.open(url, "_blank");
+  }
 });
 
 document.getElementById("copiaBtn").addEventListener("click", async () => {
@@ -87,11 +97,9 @@ document.getElementById("copiaBtn").addEventListener("click", async () => {
     const btn = document.getElementById("copiaBtn");
     const originalText = btn.textContent;
     btn.textContent = "Copiato!";
-    setTimeout(() => {
-      btn.textContent = originalText;
-    }, 2000);
+    setTimeout(() => { btn.textContent = originalText; }, 2000);
   } catch (err) {
-    console.error("Errore nel copia:", err);
+    console.error("Errore copia:", err);
   }
 });
 

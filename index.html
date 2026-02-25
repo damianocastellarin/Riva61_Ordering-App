@@ -3,23 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Ordini Bar">
   <title>Gestione Ordini Bar</title>
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-
   <div id="progressContainer" class="progress-container hidden">
     <div id="progressBar" class="progress-bar"></div>
   </div>
-
   <main class="container"> 
     <div id="home">
       <h1 style="text-align:center; margin-bottom:20px;">Ordini Bar</h1>
       <button id="startBtn">Inizia Nuovo Ordine</button>
     </div>
-
     <div id="step" class="hidden">
       <header class="header">
         <h2 id="categoriaNome"></h2>
@@ -30,7 +30,6 @@
       </header>
       <div id="prodottiContainer"></div>
     </div>
-
     <div id="riepilogo" class="hidden">
       <textarea id="messaggioFinale" readonly></textarea>
       <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
@@ -39,19 +38,15 @@
       <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
     </div>
   </main>
-
   <div id="updateToast" class="update-toast hidden">
     <span>Nuova versione disponibile!</span>
     <button id="updateBtn">Aggiorna</button>
   </div>
-
   <script type="module" src="js/app.js"></script>
-
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js').then(reg => {
-          
           reg.addEventListener('updatefound', () => {
             const newWorker = reg.installing;
             newWorker.addEventListener('statechange', () => {
@@ -60,15 +55,13 @@
               }
             });
           });
-
-          if (reg.waiting) {
-            showUpdateToast(reg.waiting);
-          }
-
+          if (reg.waiting) showUpdateToast(reg.waiting);
           reg.update();
-        }).catch(err => console.error("Errore SW:", err));
+        }).catch(err => {
+          console.error("Errore SW:", err);
+          if (err.name === 'SecurityError') location.reload();
+        });
       });
-
       let refreshing = false;
       navigator.serviceWorker.addEventListener('controllerchange', () => {
         if (!refreshing) {
@@ -77,17 +70,19 @@
         }
       });
     }
-
     function showUpdateToast(worker) {
       const toast = document.getElementById('updateToast');
       const btn = document.getElementById('updateBtn');
-      
       toast.classList.remove('hidden');
-      
       btn.addEventListener('click', () => {
         worker.postMessage('SKIP_WAITING');
       });
     }
+    window.addEventListener('error', (e) => {
+      if (e.message.includes('Loading chunk') || e.message.includes('Script error')) {
+        location.reload();
+      }
+    }, true);
   </script>
 </body>
 </html>
