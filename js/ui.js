@@ -29,40 +29,55 @@ export function renderStep(state) {
     const div = document.createElement("div");
     div.classList.add("input-row");
     
-    if (parseInt(state.risposte[p.id], 10) > 0) div.classList.add("filled");
+    const savedValue = parseInt(state.risposte[p.id], 10) || 0;
+    if (savedValue > 0) div.classList.add("filled");
 
-    const inputId = `prodotto-${p.id}`;
     const label = document.createElement("label");
     label.textContent = p.nome;
-    label.htmlFor = inputId;
+
+    const controls = document.createElement("div");
+    controls.classList.add("qty-controls");
 
     const input = document.createElement("input");
     input.type = "number";
-    input.id = inputId;
     input.inputMode = "numeric";
-    input.pattern = "[0-9]*";
-    
-    const savedValue = state.risposte[p.id];
-    input.value = (savedValue && savedValue !== "0" && savedValue !== 0) ? savedValue : "";
+    input.value = savedValue > 0 ? savedValue : "";
     input.dataset.id = p.id;
 
-    input.addEventListener("input", (e) => {
-      let v = e.target.value.replace(/[^0-9]/g, "");
-      if (v.length > 2) v = v.slice(0, 2);
-      e.target.value = v;
+    const updateValue = (newValue) => {
+      let v = parseInt(newValue, 10);
+      if (isNaN(v) || v <= 0) v = 0;
+      if (v > 99) v = 99;
 
-      state.risposte[p.id] = v || 0;
+      state.risposte[p.id] = v;
+      input.value = v > 0 ? v : "";
+      
+      if (v > 0) div.classList.add("filled");
+      else div.classList.remove("filled");
+
       localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+    };
 
-      if (parseInt(v, 10) > 0) {
-        div.classList.add("filled");
-      } else {
-        div.classList.remove("filled");
-      }
+    const btnMinus = document.createElement("button");
+    btnMinus.textContent = "-";
+    btnMinus.classList.add("btn-qty");
+    btnMinus.onclick = () => updateValue(parseInt(state.risposte[p.id] || 0, 10) - 1);
+
+    const btnPlus = document.createElement("button");
+    btnPlus.textContent = "+";
+    btnPlus.classList.add("btn-qty");
+    btnPlus.onclick = () => updateValue(parseInt(state.risposte[p.id] || 0, 10) + 1);
+
+    input.addEventListener("input", (e) => {
+      updateValue(e.target.value.replace(/[^0-9]/g, ""));
     });
 
+    controls.appendChild(btnMinus);
+    controls.appendChild(input);
+    controls.appendChild(btnPlus);
+
     div.appendChild(label);
-    div.appendChild(input);
+    div.appendChild(controls);
     fragment.appendChild(div);
   });
 
