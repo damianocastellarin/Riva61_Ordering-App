@@ -13,7 +13,7 @@ const progressContainer = document.getElementById("progressContainer");
 
 function ripristinaDaLocale() {
   try {
-    const datiSalvati = localStorage.getItem("ordine_bar_salvato");
+    const datiSalvati = sessionStorage.getItem("ordine_bar_salvato");
     if (datiSalvati) {
       const backup = JSON.parse(datiSalvati);
       if (!backup.risposte || typeof backup.stepIndex !== 'number') {
@@ -55,13 +55,13 @@ document.getElementById("indietroBtn").addEventListener("click", () => {
   if (state.stepIndex > 0) {
     state.stepIndex--;
     renderStep(state);
-    localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+    sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
   }
 });
 
 document.getElementById("avantiBtn").addEventListener("click", () => {
   state.stepIndex++;
-  localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+  sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
   if (state.stepIndex >= CATEGORIE.length) {
     const mess = generaMessaggio(state.risposte);
     messaggioFinale.value = mess;

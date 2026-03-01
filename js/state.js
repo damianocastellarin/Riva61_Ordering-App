@@ -6,5 +6,5 @@ export const state = {
 export function resetState() {
   state.stepIndex = 0;
   state.risposte = {};
-  localStorage.removeItem("ordine_bar_salvato");
+  sessionStorage.removeItem("ordine_bar_salvato");
 }

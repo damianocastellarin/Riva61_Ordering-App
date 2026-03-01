@@ -60,7 +60,7 @@ export function renderStep(state) {
       if (v > 0) div.classList.add("filled");
       else div.classList.remove("filled");
 
-      localStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+      sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
     };
 
     const btnMinus = document.createElement("button");
