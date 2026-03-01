@@ -20,7 +20,7 @@ if (!isStandalone) {
             deferredPrompt = null;
         } else {
             if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-                alert("Per installare l'app su iPhone:\n1. Clicca sul tasto 'Condividi' (quadrato con freccia su)\n2. Scorri e clicca 'Aggiungi alla schermata Home'");
+                alert("Per installare l'app su iPhone:\n1. Apri con Safari\n2. Clicca sul tasto 'Condividi' (quadrato con freccia su)\n2. Scorri e clicca 'Aggiungi alla schermata Home'");
             }
         }
     });
