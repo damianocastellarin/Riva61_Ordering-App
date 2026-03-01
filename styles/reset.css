@@ -4,6 +4,7 @@
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  touch-action: manipulation;
 }
 
 html, body {
@@ -26,6 +27,7 @@ body {
 input, textarea {
   user-select: text;
   -webkit-user-select: text;
+  touch-action: auto;
 }
 
 input[type="number"] {

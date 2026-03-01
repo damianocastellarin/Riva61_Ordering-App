@@ -105,6 +105,7 @@ button {
   cursor: pointer;
   transition: opacity 0.2s, transform 0.1s;
   margin-bottom: 10px;
+  touch-action: manipulation;
 }
 
 button:active {
@@ -158,6 +159,7 @@ button:disabled {
   display: flex;
   align-items: center;
   justify-content: center;
+  touch-action: none;
 }
 
 .btn-qty:active {
