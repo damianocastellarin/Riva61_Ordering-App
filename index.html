@@ -18,8 +18,46 @@
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    #update-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 15px 20px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      z-index: 9999;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      font-family: sans-serif;
+      transition: opacity 0.3s;
+    }
+    #update-toast.hidden {
+      display: none;
+      opacity: 0;
+    }
+    #update-toast button {
+      background: #007bff;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
+  <div id="update-toast" class="hidden">
+    <span>Nuova versione disponibile!</span>
+    <button id="refresh-btn">Aggiorna</button>
+  </div>
+
   <div id="progressContainer" class="progress-container hidden">
     <div id="progressBar" class="progress-bar"></div>
   </div>
@@ -59,9 +97,46 @@
 
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .catch(err => console.error("Errore SW:", err));
+      let newWorker;
+      const toast = document.getElementById('update-toast');
+      const refreshBtn = document.getElementById('refresh-btn');
+
+      refreshBtn.addEventListener('click', () => {
+        if (newWorker) {
+          newWorker.postMessage({ type: 'SKIP_WAITING' });
+        }
+      });
+
+      navigator.serviceWorker.register('service-worker.js').then(reg => {
+        reg.addEventListener('updatefound', () => {
+          newWorker = reg.installing;
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              toast.classList.remove('hidden');
+            }
+          });
+        });
+
+        if (reg.waiting) {
+          newWorker = reg.waiting;
+          toast.classList.remove('hidden');
+        }
+      });
+
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          window.location.reload();
+          refreshing = true;
+        }
+      });
+
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+          navigator.serviceWorker.getRegistration().then(reg => {
+            if (reg) reg.update();
+          });
+        }
       });
     }
 
