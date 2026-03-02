@@ -58,22 +58,23 @@
   <script type="module" src="js/app.js"></script>
 
   <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('service-worker.js')
-            .then(reg => {
-              console.log("SW registrato con successo!");
-              reg.update();
-            })
-            .catch(err => console.error("Errore SW:", err));
-        });
-      }
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => {
+            console.log("SW registrato. Se c'è un update, verrà installato in background.");
+            
+            reg.update(); 
+          })
+          .catch(err => console.error("Errore SW:", err));
+      });
+    }
 
-      window.addEventListener('error', (e) => {
-        if (e.message.includes('Loading chunk') || e.message.includes('Script error')) {
-          location.reload();
-        }
-      }, true);
-    </script>
+    window.addEventListener('error', (e) => {
+      if (e.message.includes('Loading chunk') || e.message.includes('Script error')) {
+        location.reload();
+      }
+    }, true);
+  </script>
   </body>
   </html>
