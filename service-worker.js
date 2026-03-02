@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v10';
+const CACHE_NAME = 'ordini-cache-v9';
 const urlsToCache = [
   './',
   './index.html',
@@ -19,7 +19,18 @@ const urlsToCache = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      return Promise.all(
+        urlsToCache.map(url => {
+          return fetch(url, { cache: 'reload' })
+            .then(response => {
+              if (!response.ok) throw new Error(`Fallito download: ${url}`);
+              return cache.put(url, response);
+            })
+            .catch(err => console.error("Errore installazione risorsa:", url, err));
+        })
+      );
+    })
   );
 });
 
@@ -44,12 +55,18 @@ self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
 
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        const resClone = response.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+    caches.match(event.request).then(cachedResponse => {
+      const fetchPromise = fetch(event.request).then(networkResponse => {
+        if (networkResponse && networkResponse.status === 200) {
+          const resClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+        }
+        return networkResponse;
+      }).catch(() => {
+        return cachedResponse;
+      });
+
+      return cachedResponse || fetchPromise;
+    })
   );
 });
