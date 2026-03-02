@@ -142,7 +142,7 @@ button:disabled {
 }
 
 .btn-danger {
-  background-color: brown;
+  background-color: blue;
   color: white;
   margin-top: 10px;
 }
