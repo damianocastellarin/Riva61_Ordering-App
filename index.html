@@ -26,10 +26,10 @@
 
   <main class="container"> 
     <div id="home">
-      <h1 style="text-align:center; margin-bottom:20px;">Ordini Bar</h1>
+      <h1 class="main-title">Ordini Bar</h1>
       <button id="startBtn">Inizia Nuovo Ordine</button>
       
-      <button id="installBtn" class="hidden" style="background-color: #28a745; color: white; margin-top: 10px;">
+      <button id="installBtn" class="btn-install hidden">
         Installa App sulla Home
       </button>
     </div>
@@ -55,22 +55,25 @@
   </main>
 
   <script src="js/pwa-install.js" defer></script>
-  
   <script type="module" src="js/app.js"></script>
 
   <script>
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-          .catch(err => console.error("Errore SW:", err));
-      });
-    }
-
-    window.addEventListener('error', (e) => {
-      if (e.message.includes('Loading chunk') || e.message.includes('Script error')) {
-        location.reload();
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('service-worker.js')
+            .then(reg => {
+              console.log("SW registrato con successo!");
+              reg.update();
+            })
+            .catch(err => console.error("Errore SW:", err));
+        });
       }
-    }, true);
-  </script>
-</body>
-</html>
+
+      window.addEventListener('error', (e) => {
+        if (e.message.includes('Loading chunk') || e.message.includes('Script error')) {
+          location.reload();
+        }
+      }, true);
+    </script>
+  </body>
+  </html>

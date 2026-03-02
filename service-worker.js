@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v2';
+const CACHE_NAME = 'ordini-cache-v1';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,11 +7,15 @@ const urlsToCache = [
   './js/app.js',
   './js/state.js',
   './js/ui.js',
+  './js/pwa-install.js',
   './js/orderBuilder.js',
   './data/categorie.js',
   './data/prodotti.js',
   './data/fornitori.js',
-  './manifest.json'
+  './manifest.json',
+  './assets/icons/icon-192.png',
+  './assets/icons/icon-512.png'
+
 ];
 
 self.addEventListener('install', event => {
