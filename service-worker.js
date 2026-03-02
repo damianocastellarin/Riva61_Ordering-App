@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v1';
+const CACHE_NAME = 'ordini-cache-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -19,7 +19,10 @@ const urlsToCache = [
 
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache))
+    caches.open(CACHE_NAME).then(cache => {
+      console.log('SW: Creazione nuova cache', CACHE_NAME);
+      return cache.addAll(urlsToCache);
+    })
   );
 });
 
@@ -27,8 +30,15 @@ self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys().then(cacheNames => {
       return Promise.all(
-        cacheNames.filter(name => name !== CACHE_NAME).map(name => caches.delete(name))
+        cacheNames.map(cacheName => {
+          if (cacheName !== CACHE_NAME) {
+            console.log('SW: Eliminazione vecchia cache', cacheName);
+            return caches.delete(cacheName);
+          }
+        })
       );
+    }).then(() => {
+      return self.clients.claim();
     })
   );
 });
@@ -47,4 +57,10 @@ self.addEventListener('fetch', event => {
       })
       .catch(() => caches.match(event.request))
   );
+});
+
+self.addEventListener('message', event => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
 });

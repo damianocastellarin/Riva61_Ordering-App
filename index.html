@@ -60,11 +60,25 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
+        const swUrl = `service-worker.js?v=${Date.now()}`;
+        
+        navigator.serviceWorker.register(swUrl)
           .then(reg => {
-            console.log("SW registrato. Se c'è un update, verrà installato in background.");
-            
-            reg.update(); 
+            console.log("SW registrato con timestamp per bypassare la cache");
+
+            reg.update();
+
+            reg.onupdatefound = () => {
+              const installingWorker = reg.installing;
+              installingWorker.onstatechange = () => {
+                if (installingWorker.state === 'installed') {
+                  if (navigator.serviceWorker.controller) {
+                    installingWorker.postMessage('skipWaiting');
+                    console.log('Nuova versione scaricata. Chiudi e riapri per applicare.');
+                  }
+                }
+              };
+            };
           })
           .catch(err => console.error("Errore SW:", err));
       });
