@@ -3,53 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  
-  <meta name="color-scheme" content="light">
-  <meta name="theme-color" content="#f8f9fa">
-
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="Ordini Bar">
+  <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
-  
   <title>Gestione Ordini Bar</title>
-  
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="manifest" href="manifest.json">
-
   <style>
-    #update-toast {
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #333;
-      color: #fff;
-      padding: 15px 20px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      z-index: 9999;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      font-family: sans-serif;
-      transition: opacity 0.3s;
-    }
-    #update-toast.hidden {
-      display: none;
-      opacity: 0;
-    }
-    #update-toast button {
-      background: #007bff;
-      color: white;
-      border: none;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-weight: bold;
-    }
+    #update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 15px 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-family: sans-serif; transition: opacity 0.3s; }
+    #update-toast.hidden, .hidden { display: none !important; }
+    #login-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; }
+    #login-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
+    #login-form input { padding: 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
+    #loginBtn { padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -63,88 +29,72 @@
   </div>
 
   <main class="container"> 
-    <div id="home">
-      <h1 class="main-title">Ordini Bar</h1>
-      <button id="startBtn">Inizia Nuovo Ordine</button>
+    <div id="login-container">
+      <h1 class="main-title">Accesso Riservato Bar</h1>
+      <div id="login-form">
+        <input type="email" id="login-email" placeholder="Email del bar">
+        <input type="password" id="login-password" placeholder="Password">
+        <button id="loginBtn">Accedi</button>
+      </div>
+    </div>
+
+    <div id="app-content" class="hidden">
+      <div id="home">
+        <h1 class="main-title">Ordini Bar</h1>
+        <button id="startBtn">Inizia Nuovo Ordine</button>
+        <button id="logoutBtn" style="background:none; color:gray; border:none; margin-top:20px; cursor:pointer;">Esci dall'account</button>
+        <button id="installBtn" class="btn-install hidden">Installa App</button>
+      </div>
       
-      <button id="installBtn" class="btn-install hidden">
-        Installa App sulla Home
-      </button>
-    </div>
+      <div id="step" class="hidden">
+        <header class="header">
+          <h2 id="categoriaNome"></h2>
+          <div class="nav-buttons">
+            <button id="indietroBtn" class="btn-small">Indietro</button>
+            <button id="avantiBtn" class="btn-small">Avanti</button>
+          </div>
+        </header>
+        <div id="prodottiContainer"></div>
+      </div>
 
-    <div id="step" class="hidden">
-      <header class="header">
-        <h2 id="categoriaNome"></h2>
-        <div class="nav-buttons">
-          <button id="indietroBtn" class="btn-small">Indietro</button>
-          <button id="avantiBtn" class="btn-small">Avanti</button>
-        </div>
-      </header>
-      <div id="prodottiContainer"></div>
-    </div>
-
-    <div id="riepilogo" class="hidden">
-      <textarea id="messaggioFinale" readonly></textarea>
-      <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
-      <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
-      <button id="riepilogoIndietroBtn" class="btn-secondary">Torna alla modifica</button>
-      <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
+      <div id="riepilogo" class="hidden">
+        <textarea id="messaggioFinale" readonly></textarea>
+        <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
+        <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
+        <button id="riepilogoIndietroBtn" class="btn-secondary">Torna alla modifica</button>
+        <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
+      </div>
     </div>
   </main>
 
-  <script src="js/pwa-install.js" defer></script>
-  <script type="module" src="js/app.js"></script>
+  <script type="module">
+    import { firebaseConfig } from "./js/constants.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      onAuthStateChanged, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  <script>
-    if ('serviceWorker' in navigator) {
-      let newWorker;
-      const toast = document.getElementById('update-toast');
-      const refreshBtn = document.getElementById('refresh-btn');
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-      refreshBtn.addEventListener('click', () => {
-        if (newWorker) {
-          newWorker.postMessage({ type: 'SKIP_WAITING' });
-        }
-      });
-
-      navigator.serviceWorker.register('service-worker.js').then(reg => {
-        reg.addEventListener('updatefound', () => {
-          newWorker = reg.installing;
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              toast.classList.remove('hidden');
-            }
-          });
-        });
-
-        if (reg.waiting) {
-          newWorker = reg.waiting;
-          toast.classList.remove('hidden');
-        }
-      });
-
-      let refreshing = false;
-      navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!refreshing) {
-          window.location.reload();
-          refreshing = true;
-        }
-      });
-
-      document.addEventListener('visibilitychange', () => {
-        if (document.visibilityState === 'visible') {
-          navigator.serviceWorker.getRegistration().then(reg => {
-            if (reg) reg.update();
-          });
-        }
-      });
-    }
-
-    window.addEventListener('error', (e) => {
-      if (e.message.includes('Loading chunk') || e.message.includes('Script error')) {
-        location.reload();
-      }
-    }, true);
+    window.fb = { 
+      auth, db,
+      signInWithEmailAndPassword,
+      onAuthStateChanged,
+      signOut,
+      collection,
+      getDocs,
+      addDoc
+    };
   </script>
+
+  <script src="js/pwa-install.js" defer></script>
+  <script type="module" src="js/auth.js"></script>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

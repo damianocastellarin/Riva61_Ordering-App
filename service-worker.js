@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v0';
+const CACHE_NAME = 'ordini-cache-v89';
 const urlsToCache = [
   './',
   './index.html',
@@ -9,9 +9,8 @@ const urlsToCache = [
   './js/ui.js',
   './js/pwa-install.js',
   './js/orderBuilder.js',
-  './data/categorie.js',
-  './data/prodotti.js',
-  './data/fornitori.js',
+  './js/auth.js',
+  './js/constants.js',
   './manifest.json',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png'
@@ -53,6 +52,10 @@ self.addEventListener('message', event => {
 
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
+
+  if (event.request.url.includes('firebasejs') || event.request.url.includes('firestore.googleapis')) {
+    return;
+  }
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {

@@ -1,23 +1,27 @@
-import { PRODOTTI } from "../data/prodotti.js";
-import { FORNITORI } from "../data/fornitori.js";
-
 export function generaMessaggio(risposte) {
   let messaggio = "*RIEPILOGO ORDINI BAR*\n\n";
+  const prodottiScaricati = window.mappaProdottiCompleta || [];
+  
+  const tuttiFornitori = [...new Set(prodottiScaricati.map(p => p.fornitore || "Senza Fornitore"))];
+
   let ordinePresente = false;
 
-  FORNITORI.forEach(f => {
-    const prodottiF = PRODOTTI.filter(p => p.fornitore === f.id);
-    const prodottiTesto = prodottiF
-      .map(p => {
-        const val = risposte[p.id];
-        const qta = (val !== "" && val !== null) ? parseInt(val, 10) : 0;
-        return qta > 0 ? `• ${qta} x ${p.nome}` : null;
-      })
-      .filter(x => x);
+  tuttiFornitori.forEach(fornitore => {
+    const prodottiOrdinatiFornitore = prodottiScaricati.filter(p => {
+      const qta = parseInt(risposte[p.nome], 10) || 0;
+      return p.fornitore === fornitore && qta > 0;
+    });
 
-    if (prodottiTesto.length > 0) {
+    if (prodottiOrdinatiFornitore.length > 0) {
       ordinePresente = true;
-      messaggio += `*${f.nome.toUpperCase()}*\n${prodottiTesto.join("\n")}\n\n`;
+      messaggio += `*${fornitore.toUpperCase()}*\n`;
+      
+      prodottiOrdinatiFornitore.forEach(p => {
+        const qta = risposte[p.nome];
+        messaggio += `• ${qta} x ${p.nome}\n`;
+      });
+      
+      messaggio += "\n";
     }
   });
 

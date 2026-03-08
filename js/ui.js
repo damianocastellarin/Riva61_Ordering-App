@@ -1,39 +1,36 @@
-import { PRODOTTI } from "../data/prodotti.js";
-import { CATEGORIE } from "../data/categorie.js";
+export function renderStep(state, categorie) {
+  if (!categorie || categorie.length === 0) return;
+  if (state.stepIndex < 0 || state.stepIndex >= categorie.length) return;
 
-export function renderStep(state) {
-  if (state.stepIndex < 0 || state.stepIndex >= CATEGORIE.length) return;
-
-  const categoria = CATEGORIE[state.stepIndex];
-  if (!categoria) return;
-
+  const categoriaCorrente = categorie[state.stepIndex];
+  
   const avantiBtn = document.getElementById("avantiBtn");
   const progressContainer = document.getElementById("progressContainer");
   const progressBar = document.getElementById("progressBar");
 
   if (progressContainer && progressBar) {
     progressContainer.classList.remove("hidden");
-    const progress = ((state.stepIndex + 1) / CATEGORIE.length) * 100;
+    const progress = ((state.stepIndex + 1) / categorie.length) * 100;
     progressBar.style.width = `${progress}%`;
   }
 
-  document.getElementById("categoriaNome").textContent = categoria.nome;
+  document.getElementById("categoriaNome").textContent = categoriaCorrente.nome;
   document.getElementById("indietroBtn").disabled = state.stepIndex === 0;
-  avantiBtn.textContent = state.stepIndex === CATEGORIE.length - 1 ? "Crea Messaggio" : "Avanti";
+  avantiBtn.textContent = state.stepIndex === categorie.length - 1 ? "Crea Messaggio" : "Avanti";
 
   const container = document.getElementById("prodottiContainer");
   container.innerHTML = "";
   const fragment = document.createDocumentFragment();
 
-  PRODOTTI.filter(p => p.categoria === categoria.id).forEach(p => {
+  categoriaCorrente.prodotti.forEach(nomeProdotto => {
     const div = document.createElement("div");
     div.classList.add("input-row");
     
-    const savedValue = parseInt(state.risposte[p.id], 10) || 0;
+    const savedValue = parseInt(state.risposte[nomeProdotto], 10) || 0;
     if (savedValue > 0) div.classList.add("filled");
 
     const label = document.createElement("label");
-    label.textContent = p.nome;
+    label.textContent = nomeProdotto;
 
     const controls = document.createElement("div");
     controls.classList.add("qty-controls");
@@ -42,19 +39,13 @@ export function renderStep(state) {
     input.type = "number";
     input.inputMode = "numeric";
     input.value = savedValue > 0 ? savedValue : "";
-    input.dataset.id = p.id;
-
+    
     const updateValue = (newValue) => {
-      let rawValue = newValue.toString().replace(/[^0-9]/g, "");
-
-      if (rawValue.length > 2) {
-        rawValue = rawValue.substring(0, 2);
-      }
-
-      let v = parseInt(rawValue, 10);
+      let v = parseInt(newValue, 10);
       if (isNaN(v) || v <= 0) v = 0;
+      if (v > 99) v = 99;
       
-      state.risposte[p.id] = v;
+      state.risposte[nomeProdotto] = v;
       input.value = v > 0 ? v : "";
       
       if (v > 0) div.classList.add("filled");
@@ -66,26 +57,22 @@ export function renderStep(state) {
     const btnMinus = document.createElement("button");
     btnMinus.textContent = "-";
     btnMinus.classList.add("btn-qty");
-    
     btnMinus.onpointerdown = (e) => {
       e.preventDefault();
-      let currentV = parseInt(state.risposte[p.id] || 0, 10);
+      let currentV = parseInt(state.risposte[nomeProdotto] || 0, 10);
       if (currentV > 0) updateValue(currentV - 1);
     };
 
     const btnPlus = document.createElement("button");
     btnPlus.textContent = "+";
     btnPlus.classList.add("btn-qty");
-    
     btnPlus.onpointerdown = (e) => {
       e.preventDefault();
-      let currentV = parseInt(state.risposte[p.id] || 0, 10);
-      if (currentV < 99) updateValue(currentV + 1);
+      let currentV = parseInt(state.risposte[nomeProdotto] || 0, 10);
+      updateValue(currentV + 1);
     };
 
-    input.addEventListener("input", (e) => {
-      updateValue(e.target.value);
-    });
+    input.addEventListener("input", (e) => updateValue(e.target.value));
 
     controls.appendChild(btnMinus);
     controls.appendChild(input);

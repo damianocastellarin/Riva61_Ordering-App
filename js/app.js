@@ -1,113 +1,136 @@
 import { state, resetState } from "./state.js";
-import { CATEGORIE } from "../data/categorie.js";
 import { renderStep } from "./ui.js";
 import { generaMessaggio } from "./orderBuilder.js";
+
+let CATEGORIE_DINAMICHE = [];
 
 const home = document.getElementById("home");
 const stepDiv = document.getElementById("step");
 const riepilogoDiv = document.getElementById("riepilogo");
 const messaggioFinale = document.getElementById("messaggioFinale");
-const riepilogoIndietroBtn = document.getElementById("riepilogoIndietroBtn");
-const nuovoOrdineBtn = document.getElementById("nuovoOrdineBtn");
 const progressContainer = document.getElementById("progressContainer");
 
-function ripristinaDaLocale() {
-  try {
-    const datiSalvati = sessionStorage.getItem("ordine_bar_salvato");
-    if (datiSalvati) {
-      const backup = JSON.parse(datiSalvati);
-      if (!backup.risposte || typeof backup.stepIndex !== 'number') {
-        resetState();
-        return;
-      }
-      state.stepIndex = backup.stepIndex;
-      state.risposte = backup.risposte;
-      home.classList.add("hidden");
-      if (state.stepIndex >= CATEGORIE.length) {
-        const mess = generaMessaggio(state.risposte);
-        messaggioFinale.value = mess;
-        riepilogoDiv.classList.remove("hidden");
-        stepDiv.classList.add("hidden");
-        if (progressContainer) progressContainer.classList.add("hidden");
-      } else {
-        stepDiv.classList.remove("hidden");
-        if (progressContainer) progressContainer.classList.remove("hidden");
-        renderStep(state);
-      }
-    }
-  } catch (e) {
-    resetState();
-  }
-}
-
-ripristinaDaLocale();
-
-document.getElementById("startBtn").addEventListener("click", () => {
-  resetState();
-  home.classList.add("hidden");
-  stepDiv.classList.remove("hidden");
-  if (progressContainer) progressContainer.classList.remove("hidden"); 
-  state.stepIndex = 0;
-  renderStep(state);
+window.addEventListener('auth-success', (e) => {
+    caricaDatiDalDatabase(e.detail.uid);
 });
 
-document.getElementById("indietroBtn").addEventListener("click", () => {
-  if (state.stepIndex > 0) {
-    state.stepIndex--;
-    renderStep(state);
-    sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
-  }
+async function caricaDatiDalDatabase(uid) {
+    try {
+        const querySnapshot = await window.fb.getDocs(
+            window.fb.collection(window.fb.db, "bars", uid, "prodotti")
+        );
+        
+        const prodottiScaricati = [];
+        querySnapshot.forEach((doc) => {
+            prodottiScaricati.push({ id: doc.id, ...doc.data() });
+        });
+
+        if (prodottiScaricati.length === 0) {
+            console.warn("Nessun prodotto trovato nel database per questo bar.");
+            return;
+        }
+
+        window.mappaProdottiCompleta = prodottiScaricati;
+
+        const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
+        CATEGORIE_DINAMICHE = nomiCategorie.map(nomeCat => ({
+            nome: nomeCat,
+            prodotti: prodottiScaricati
+                .filter(p => p.categoria === nomeCat)
+                .map(p => p.nome)
+        }));
+
+        console.log("App pronta con dati dinamici:", CATEGORIE_DINAMICHE);
+        
+        ripristinaDaLocale();
+        
+    } catch (error) {
+        console.error("Errore nel recupero dati Firestore:", error);
+    }
+}
+
+function ripristinaDaLocale() {
+    const datiSalvati = sessionStorage.getItem("ordine_bar_salvato");
+    if (datiSalvati && CATEGORIE_DINAMICHE.length > 0) {
+        const backup = JSON.parse(datiSalvati);
+        state.stepIndex = backup.stepIndex;
+        state.risposte = backup.risposte;
+        
+        home.classList.add("hidden");
+        if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+            mostraRiepilogo();
+        } else {
+            stepDiv.classList.remove("hidden");
+            renderStep(state, CATEGORIE_DINAMICHE);
+        }
+    }
+}
+
+document.getElementById("startBtn").addEventListener("click", () => {
+    if (CATEGORIE_DINAMICHE.length === 0) {
+        alert("Caricamento prodotti in corso, attendi un istante...");
+        return;
+    }
+    resetState();
+    home.classList.add("hidden");
+    stepDiv.classList.remove("hidden");
+    state.stepIndex = 0;
+    renderStep(state, CATEGORIE_DINAMICHE);
 });
 
 document.getElementById("avantiBtn").addEventListener("click", () => {
-  state.stepIndex++;
-  sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
-  if (state.stepIndex >= CATEGORIE.length) {
-    const mess = generaMessaggio(state.risposte);
-    messaggioFinale.value = mess;
+    state.stepIndex++;
+    sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+    if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+        mostraRiepilogo();
+    } else {
+        renderStep(state, CATEGORIE_DINAMICHE);
+    }
+});
+
+document.getElementById("indietroBtn").addEventListener("click", () => {
+    if (state.stepIndex > 0) {
+        state.stepIndex--;
+        renderStep(state, CATEGORIE_DINAMICHE);
+        sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+    }
+});
+
+function mostraRiepilogo() {
+    messaggioFinale.value = generaMessaggio(state.risposte);
     stepDiv.classList.add("hidden");
     riepilogoDiv.classList.remove("hidden");
-    if (progressContainer) progressContainer.classList.add("hidden"); 
-  } else {
-    renderStep(state);
-  }
-});
-
-riepilogoIndietroBtn.addEventListener("click", () => {
-  riepilogoDiv.classList.add("hidden");
-  stepDiv.classList.remove("hidden");
-  if (progressContainer) progressContainer.classList.remove("hidden"); 
-  state.stepIndex = CATEGORIE.length - 1;
-  renderStep(state);
-});
+    if (progressContainer) progressContainer.classList.add("hidden");
+}
 
 document.getElementById("whatsappBtn").addEventListener("click", () => {
-  const testo = encodeURIComponent(messaggioFinale.value);
-  const url = `https://wa.me/?text=${testo}`;
-  if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-    window.location.href = url;
-  } else {
+    const testo = encodeURIComponent(messaggioFinale.value);
+    const url = `https://wa.me/?text=${testo}`;
     window.open(url, "_blank");
-  }
 });
 
 document.getElementById("copiaBtn").addEventListener("click", async () => {
-  try {
-    await navigator.clipboard.writeText(messaggioFinale.value);
-    const btn = document.getElementById("copiaBtn");
-    const originalText = btn.textContent;
-    btn.textContent = "Copiato!";
-    setTimeout(() => { btn.textContent = originalText; }, 2000);
-  } catch (err) {
-    console.error("Errore copia:", err);
-  }
+    try {
+        await navigator.clipboard.writeText(messaggioFinale.value);
+        const btn = document.getElementById("copiaBtn");
+        const originalText = btn.textContent;
+        btn.textContent = "Copiato!";
+        setTimeout(() => { btn.textContent = originalText; }, 2000);
+    } catch (err) { console.error(err); }
 });
 
-nuovoOrdineBtn.addEventListener("click", () => {
-  if (confirm("Vuoi cancellare questo ordine e iniziarne uno nuovo?")) {
-    resetState();
+document.getElementById("nuovoOrdineBtn").addEventListener("click", () => {
+    if (confirm("Vuoi iniziare un nuovo ordine?")) {
+        resetState();
+        sessionStorage.removeItem("ordine_bar_salvato");
+        riepilogoDiv.classList.add("hidden");
+        home.classList.remove("hidden");
+    }
+});
+
+document.getElementById("riepilogoIndietroBtn").addEventListener("click", () => {
     riepilogoDiv.classList.add("hidden");
-    home.classList.remove("hidden");
-    if (progressContainer) progressContainer.classList.add("hidden");
-  }
+    stepDiv.classList.remove("hidden");
+    state.stepIndex = CATEGORIE_DINAMICHE.length - 1;
+    renderStep(state, CATEGORIE_DINAMICHE);
 });
