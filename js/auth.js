@@ -5,42 +5,69 @@ const loginBtn = document.getElementById('loginBtn');
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
-        const userDoc = await window.fb.getDoc(window.fb.doc(window.fb.db, "users", user.uid));
-        if (userDoc.exists()) {
-            const userData = userDoc.data();
-            loginContainer.classList.add('hidden');
-            
-            if (userData.role === "superadmin") {
-                appContent.classList.add('hidden');
-                adminContent.classList.remove('hidden');
-                window.dispatchEvent(new CustomEvent('superadmin-success'));
-            } 
-            else if (userData.role === "admin") {
-                appContent.classList.add('hidden');
-                adminContent.classList.remove('hidden');
-                window.dispatchEvent(new CustomEvent('admin-bar-choice', { 
-                    detail: { barId: userData.barId || user.uid, barName: userData.barName } 
-                }));
-            } 
-            else {
-                adminContent.classList.add('hidden');
-                appContent.classList.remove('hidden');
-                window.dispatchEvent(new CustomEvent('auth-success', { 
-                    detail: { barId: userData.barId } 
-                }));
+        try {
+            const userDoc = await window.fb.getDoc(window.fb.doc(window.fb.db, "users", user.uid));
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                loginContainer.classList.add('hidden');
+                
+                if (userData.role === "superadmin") {
+                    appContent.classList.add('hidden');
+                    adminContent.classList.remove('hidden');
+                    window.dispatchEvent(new CustomEvent('superadmin-success'));
+                } 
+                else if (userData.role === "admin") {
+                    appContent.classList.add('hidden');
+                    adminContent.classList.remove('hidden');
+                    window.dispatchEvent(new CustomEvent('admin-bar-choice', { 
+                        detail: { 
+                            barId: userData.barId || user.uid, 
+                            barName: userData.barName || "Il mio Bar" 
+                        } 
+                    }));
+                } 
+                else {
+                    adminContent.classList.add('hidden');
+                    appContent.classList.remove('hidden');
+                    window.dispatchEvent(new CustomEvent('auth-success', { 
+                        detail: { barId: userData.barId } 
+                    }));
+                }
             }
+        } catch (error) {
+            console.error("Errore durante il recupero del ruolo:", error);
         }
     } else {
         loginContainer.classList.remove('hidden');
         appContent.classList.add('hidden');
         adminContent.classList.add('hidden');
+        sessionStorage.removeItem("ordine_bar_salvato");
     }
 });
 
 loginBtn.addEventListener('click', async () => {
     const email = document.getElementById('login-email').value;
     const password = document.getElementById('login-password').value;
+    
+    if (!email || !password) return alert("Inserisci email e password");
+
     try {
         await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
-    } catch (e) { alert("Accesso fallito"); }
+    } catch (e) {
+        console.error(e);
+        alert("Accesso fallito: credenziali errate.");
+    }
+});
+
+document.addEventListener('click', async (e) => {
+    if (e.target.id === 'logoutBtn' || e.target.id === 'logoutAdminBtn') {
+        if (confirm("Vuoi uscire dall'account?")) {
+            try {
+                await window.fb.signOut(window.fb.auth);
+                window.location.reload();
+            } catch (error) {
+                console.error("Errore Logout:", error);
+            }
+        }
+    }
 });
