@@ -147,7 +147,7 @@ button:active {
 .btn-whatsapp { background-color: var(--whatsapp-color); color: white; }
 .btn-action { background-color: var(--info-color); color: white; }
 .btn-secondary { background-color: #f1f3f5; color: #495057; }
-.btn-install { background-color: var(--success-color); color: white; }
+.btn-install { background-color: var(--success-color); color: white; margin-top: 15px; }
 .btn-danger { background-color: var(--danger-color); color: white; }
 
 .btn-small {
