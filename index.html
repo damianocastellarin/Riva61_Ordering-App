@@ -20,15 +20,17 @@
     <div id="progressBar" class="progress-bar"></div>
   </div>
 
-  <main class="container"> 
-    <div id="login-container">
-      <h1 class="main-title">Accesso Riservato</h1>
-      <div id="login-form">
-        <input type="email" id="login-email" placeholder="Email">
+  <main class="container">
+    <div id="login-form">
+      <input type="email" id="login-email" placeholder="Email">
+      
+      <div class="password-wrapper">
         <input type="password" id="login-password" placeholder="Password">
-        <button id="loginBtn">Accedi</button>
-        <button id="installBtnLogin" class="btn-install hidden">Installa l'App</button>
+        <span id="togglePassword" class="toggle-icon">👁️</span>
       </div>
+      
+      <button id="loginBtn">Accedi</button>
+      <button id="installBtnLogin" class="btn-install hidden">Installa l'App</button>
     </div>
 
     <div id="app-content" class="hidden">

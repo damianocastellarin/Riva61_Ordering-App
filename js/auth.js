@@ -4,6 +4,8 @@ const loginContainer = document.getElementById('login-container');
 const appContent = document.getElementById('app-content');
 const adminContent = document.getElementById('admin-content');
 const loginBtn = document.getElementById('loginBtn');
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('login-password');
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
@@ -37,7 +39,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 }
             }
         } catch (error) {
-            console.error("Errore durante il recupero del ruolo:", error);
+            console.error(error);
         } finally {
             ui.hideLoader();
         }
@@ -54,9 +56,7 @@ if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
         const email = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
-        
         if (!email || !password) return;
-
         ui.showLoader();
         try {
             await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
@@ -68,6 +68,15 @@ if (loginBtn) {
     });
 }
 
+if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', function () {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        this.textContent = type === 'password' ? '👁️' : '🔒';
+        this.classList.toggle('hidden-pass');
+    });
+}
+
 document.addEventListener('click', async (e) => {
     if (e.target.id === 'logoutBtn' || e.target.id === 'logoutAdminBtn') {
         if (confirm("Vuoi uscire dall'account?")) {
@@ -76,7 +85,7 @@ document.addEventListener('click', async (e) => {
                 await window.fb.signOut(window.fb.auth);
                 window.location.reload();
             } catch (error) {
-                console.error("Errore Logout:", error);
+                console.error(error);
                 ui.hideLoader();
             }
         }
