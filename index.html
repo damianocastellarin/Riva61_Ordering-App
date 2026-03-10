@@ -9,14 +9,6 @@
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="manifest" href="manifest.json">
-  <style>
-    #update-toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 15px 20px; border-radius: 8px; display: flex; align-items: center; gap: 15px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); font-family: sans-serif; transition: opacity 0.3s; }
-    #update-toast.hidden, .hidden { display: none !important; }
-    #login-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; text-align: center; }
-    #login-form { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 320px; }
-    #login-form input { padding: 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 16px; }
-    #loginBtn { padding: 14px; background: #28a745; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; }
-  </style>
 </head>
 <body>
   <div id="update-toast" class="hidden">
@@ -30,9 +22,9 @@
 
   <main class="container"> 
     <div id="login-container">
-      <h1 class="main-title">Accesso Riservato Bar</h1>
+      <h1 class="main-title">Accesso Riservato</h1>
       <div id="login-form">
-        <input type="email" id="login-email" placeholder="Email del bar">
+        <input type="email" id="login-email" placeholder="Email">
         <input type="password" id="login-password" placeholder="Password">
         <button id="loginBtn">Accedi</button>
       </div>
@@ -42,7 +34,7 @@
       <div id="home">
         <h1 class="main-title">Ordini Bar</h1>
         <button id="startBtn">Inizia Nuovo Ordine</button>
-        <button id="logoutBtn" style="background:none; color:gray; border:none; margin-top:20px; cursor:pointer;">Esci dall'account</button>
+        <button id="logoutBtn" style="background:none; color:gray; border:none; margin-top:20px; cursor:pointer; text-decoration: underline;">Esci dall'account</button>
         <button id="installBtn" class="btn-install hidden">Installa App</button>
       </div>
       
@@ -65,6 +57,15 @@
         <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
       </div>
     </div>
+
+    <div id="admin-content" class="hidden">
+      <header>
+          <h2>Area Superadmin</h2>
+          <button id="logoutAdminBtn">Esci</button>
+      </header>
+      <div id="breadcrumbs"></div>
+      <div id="admin-view"></div>
+    </div>
   </main>
 
   <script type="module">
@@ -76,7 +77,18 @@
       onAuthStateChanged, 
       signOut 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, getDocs, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { 
+      getFirestore, 
+      collection, 
+      getDocs, 
+      getDoc,
+      setDoc,
+      addDoc, 
+      doc, 
+      deleteDoc, 
+      query, 
+      where 
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
@@ -89,12 +101,19 @@
       signOut,
       collection,
       getDocs,
-      addDoc
+      getDoc,
+      setDoc,
+      addDoc,
+      doc,
+      deleteDoc,
+      query,
+      where
     };
   </script>
 
   <script src="js/pwa-install.js" defer></script>
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/admin.js"></script>
 </body>
 </html>
