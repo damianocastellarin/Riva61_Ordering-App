@@ -90,16 +90,22 @@ async function renderProductList() {
 
     try {
         const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
+        
         const q = window.fb.query(
             prodRef, 
-            window.fb.where("categoria", "==", currentPath.category),
+            window.fb.where("categoria", "==", currentPath.category.trim()), 
             window.fb.orderBy("createdAt", "asc")
         );
-        const snap = await window.fb.getDocs(q);
         
+        const snap = await window.fb.getDocs(q);
         const list = document.getElementById('prodList');
-        list.innerHTML = "";
+        
+        if (snap.empty) {
+            list.innerHTML = "<p style='padding:20px; color:gray;'>Nessun prodotto in questa categoria. Aggiungine uno!</p>";
+            return;
+        }
 
+        list.innerHTML = "";
         snap.forEach(doc => {
             const p = doc.data();
             const item = document.createElement('div');
@@ -114,10 +120,15 @@ async function renderProductList() {
             };
             list.appendChild(item);
         });
+
     } catch (e) {
-        console.error("ERRORE CARICAMENTO PRODOTTI (CONTROLLA IL LINK PER L'INDICE):", e);
+        console.error("ERRORE CRITICO FIREBASE:", e);
         const list = document.getElementById('prodList');
-        list.innerHTML = "Errore nel caricamento. Apri la console (F12) per il link dell'indice.";
+        list.innerHTML = `
+            <div style="color:red; padding:20px; border:1px solid red; margin-top:10px;">
+                <b>Errore di caricamento.</b><br>
+                Se vedi questo, controlla la console (F12) per il link dell'indice.
+            </div>`;
     }
 }
 
@@ -153,14 +164,14 @@ async function addProductPrompt() {
         await window.fb.addDoc(colRef, {
             nome: nome, 
             fornitore: fornitore || "N/A", 
-            categoria: cat, 
+            categoria: cat.trim(), 
             active: true,
             createdAt: Date.now()
         });
         renderProductList();
     } catch (e) {
-        console.error("ERRORE SALVATAGGIO (CONTROLLA IL LINK PER L'INDICE):", e);
-        alert("Errore durante il salvataggio. Apri la console (F12) per il link dell'indice.");
+        console.error("ERRORE SALVATAGGIO:", e);
+        alert("Errore durante il salvataggio. Controlla la console.");
     }
 }
 
@@ -183,7 +194,7 @@ async function deleteBar(uid) {
             renderBarList();
         } catch (e) {
             console.error("ERRORE FIREBASE DETTAGLIATO:", e);
-            alert("Errore durante l'eliminazione! Controlla la console.");
+            alert("Errore durante l'eliminazione!");
         }
     }
 }
