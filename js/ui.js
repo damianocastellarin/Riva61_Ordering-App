@@ -4,7 +4,7 @@ export const ui = {
         if (!loader) {
             loader = document.createElement('div');
             loader.id = 'global-loader';
-            loader.innerHTML = `<div class="spinner"></div>`;
+            loader.innerHTML = `<div class="spinner"></div>`; 
             document.body.appendChild(loader);
         }
         loader.classList.remove('hidden');

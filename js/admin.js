@@ -19,6 +19,7 @@ window.renderBarList = renderBarList;
 window.renderAdminChoice = renderAdminChoice;
 window.renderCategoryList = renderCategoryList;
 window.openModal = openModal;
+window.deleteProduct = deleteProduct;
 
 window.addEventListener('superadmin-success', () => { isSuperAdmin = true; renderBarList(); });
 window.addEventListener('admin-bar-choice', (e) => {
@@ -30,68 +31,109 @@ window.addEventListener('admin-bar-choice', (e) => {
 
 function renderAdminChoice() {
     updateBreadcrumbs();
-    adminView.innerHTML = `
-        <div style="display:flex; flex-direction:column; gap:20px; padding:20px;">
-            <button class="btn-primary" id="btnGoOrders" style="height:100px; font-weight:bold;">🚀 FAI ORDINI</button>
-            <button class="btn-secondary" id="btnGoEdit" style="height:100px; font-weight:bold;">⚙️ MODIFICA PRODOTTI</button>
-        </div>
-    `;
-    document.getElementById('btnGoOrders').onclick = () => {
+    adminView.innerHTML = "";
+    
+    const container = document.createElement('div');
+    container.style.cssText = "display:flex; flex-direction:column; gap:20px; padding:20px;";
+
+    const btnOrders = document.createElement('button');
+    btnOrders.className = "btn-primary";
+    btnOrders.style.cssText = "height:100px; font-weight:bold;";
+    btnOrders.textContent = "🚀 FAI ORDINI";
+    btnOrders.onclick = () => {
         document.getElementById('admin-content').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
         window.dispatchEvent(new CustomEvent('auth-success', { detail: { barId: currentPath.barId } }));
     };
-    document.getElementById('btnGoEdit').onclick = () => renderCategoryList();
+
+    const btnEdit = document.createElement('button');
+    btnEdit.className = "btn-secondary";
+    btnEdit.style.cssText = "height:100px; font-weight:bold;";
+    btnEdit.textContent = "⚙️ MODIFICA PRODOTTI";
+    btnEdit.onclick = () => renderCategoryList();
+
+    container.appendChild(btnOrders);
+    container.appendChild(btnEdit);
+    adminView.appendChild(container);
 }
 
 async function renderBarList() {
     isSuperAdmin = true;
     currentPath = { barId: null, barName: '', category: '' };
     updateBreadcrumbs();
-    adminView.innerHTML = `<div class="list-container" id="barList">Caricamento bar...</div>`;
+    
+    adminView.innerHTML = "";
+    const list = document.createElement('div');
+    list.className = "list-container";
+    list.textContent = "Caricamento bar...";
+    adminView.appendChild(list);
+
     try {
         const querySnapshot = await window.fb.getDocs(window.fb.collection(window.fb.db, "users"));
-        const list = document.getElementById('barList');
-        list.innerHTML = "";
-        querySnapshot.forEach(doc => {
-            const data = doc.data();
+        list.textContent = "";
+        
+        querySnapshot.forEach(docSnap => {
+            const data = docSnap.data();
             if(data.role === 'admin') {
                 const item = document.createElement('div');
                 item.className = 'admin-item';
-                item.innerHTML = `<span>${data.barName || doc.id}</span> <button class="delete-btn">Elimina</button>`;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = data.barName || docSnap.id;
+                
+                const delBtn = document.createElement('button');
+                delBtn.className = 'delete-btn';
+                delBtn.textContent = 'Elimina';
+                delBtn.onclick = (e) => { 
+                    e.stopPropagation(); 
+                    deleteBar(docSnap.id); 
+                };
+
+                item.appendChild(nameSpan);
+                item.appendChild(delBtn);
+                
                 item.onclick = (e) => {
-                    if(e.target.tagName !== 'BUTTON') {
-                        currentPath.barId = data.barId || doc.id;
+                    if(e.target !== delBtn) {
+                        currentPath.barId = data.barId || docSnap.id;
                         currentPath.barName = data.barName || "Bar";
                         renderCategoryList();
                     }
                 };
-                item.querySelector('.delete-btn').onclick = (e) => { e.stopPropagation(); deleteBar(doc.id); };
                 list.appendChild(item);
             }
         });
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error(e); list.textContent = "Errore nel caricamento."; }
 }
 
 async function renderCategoryList() {
     currentPath.category = '';
     updateBreadcrumbs();
-    adminView.innerHTML = `
-        <button class="btn-secondary" id="addCatBtn">+ Nuova Categoria</button>
-        <div class="list-container" id="catList"></div>
-    `;
-    document.getElementById('addCatBtn').onclick = () => openModal();
+    adminView.innerHTML = "";
+
+    const addBtn = document.createElement('button');
+    addBtn.className = "btn-secondary";
+    addBtn.textContent = "+ Nuova Categoria";
+    addBtn.onclick = () => openModal();
+    adminView.appendChild(addBtn);
+
+    const list = document.createElement('div');
+    list.className = "list-container";
+    adminView.appendChild(list);
 
     try {
         const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
         const snap = await window.fb.getDocs(prodRef);
-        const categorie = [...new Set(snap.docs.map(d => d.data().categoria))];
-        const list = document.getElementById('catList');
+        const categorie = [...new Set(snap.docs.map(d => d.data().categoria))].sort();
+        
         categorie.forEach(cat => {
             if(!cat) return;
             const item = document.createElement('div');
             item.className = 'admin-item';
-            item.innerHTML = `<span>${cat}</span>`;
+            
+            const span = document.createElement('span');
+            span.textContent = cat;
+            item.appendChild(span);
+            
             item.onclick = () => { currentPath.category = cat; renderProductList(); };
             list.appendChild(item);
         });
@@ -100,29 +142,49 @@ async function renderCategoryList() {
 
 async function renderProductList() {
     updateBreadcrumbs();
-    adminView.innerHTML = `
-        <button class="btn-secondary" id="addProdBtn">+ Nuovo Prodotto</button>
-        <div class="list-container" id="prodList"></div>
-    `;
-    document.getElementById('addProdBtn').onclick = () => openModal();
+    adminView.innerHTML = "";
+
+    const addBtn = document.createElement('button');
+    addBtn.className = "btn-secondary";
+    addBtn.textContent = "+ Nuovo Prodotto";
+    addBtn.onclick = () => openModal();
+    adminView.appendChild(addBtn);
+
+    const list = document.createElement('div');
+    list.className = "list-container";
+    adminView.appendChild(list);
 
     try {
         const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
         const q = window.fb.query(prodRef, window.fb.where("categoria", "==", currentPath.category));
         const snap = await window.fb.getDocs(q);
-        const list = document.getElementById('prodList');
-        snap.forEach(doc => {
-            const p = doc.data();
+        
+        snap.forEach(docSnap => {
+            const p = docSnap.data();
             const item = document.createElement('div');
             item.className = 'admin-item';
-            const productData = JSON.stringify({id: doc.id, ...p}).replace(/'/g, "&apos;");
-            item.innerHTML = `
-                <div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>
-                <div>
-                    <button class="edit-btn" onclick='openModal(${productData})'>✏️</button>
-                    <button class="delete-btn" onclick="deleteProduct('${doc.id}')">X</button>
-                </div>
-            `;
+
+            const info = document.createElement('div');
+            const b = document.createElement('b');
+            b.textContent = p.nome;
+            const br = document.createElement('br');
+            const small = document.createElement('small');
+            small.textContent = p.fornitore;
+            info.append(b, br, small);
+
+            const actions = document.createElement('div');
+            const editBtn = document.createElement('button');
+            editBtn.className = "edit-btn";
+            editBtn.textContent = "✏️";
+            editBtn.onclick = () => openModal({id: docSnap.id, ...p});
+
+            const delBtn = document.createElement('button');
+            delBtn.className = "delete-btn";
+            delBtn.textContent = "X";
+            delBtn.onclick = () => deleteProduct(docSnap.id);
+
+            actions.append(editBtn, delBtn);
+            item.append(info, actions);
             list.appendChild(item);
         });
     } catch (e) { console.error(e); }
@@ -134,13 +196,13 @@ async function openModal(product = null) {
     ui.hideLoader();
 
     if (product) {
-        modalTitle.innerText = "Modifica Prodotto";
+        modalTitle.textContent = "Modifica Prodotto";
         modalProductId.value = product.id;
         modalProdNome.value = product.nome;
         modalProdCat.value = product.categoria;
         modalProdFornitore.value = product.fornitore;
     } else {
-        modalTitle.innerText = "Nuovo Prodotto";
+        modalTitle.textContent = "Nuovo Prodotto";
         modalProductId.value = "";
         modalProdNome.value = "";
         modalProdCat.value = currentPath.category || "";
@@ -156,12 +218,21 @@ async function updateSuggestions() {
         const data = snap.docs.map(d => d.data());
         const cats = [...new Set(data.map(p => p.categoria))].sort();
         const forns = [...new Set(data.map(p => p.fornitore))].sort();
+        
         const selectCat = document.getElementById('selectCatQuick');
         const selectForn = document.getElementById('selectFornQuick');
-        selectCat.innerHTML = `<option value="">-- Esistenti --</option>` + 
-            cats.map(c => `<option value="${c}">${c}</option>`).join('');
-        selectForn.innerHTML = `<option value="">-- Esistenti --</option>` + 
-            forns.map(f => `<option value="${f}">${f}</option>`).join('');
+        
+        selectCat.innerHTML = "";
+        selectForn.innerHTML = "";
+        
+        const optDefaultCat = new Option("-- Esistenti --", "");
+        selectCat.add(optDefaultCat);
+        cats.forEach(c => selectCat.add(new Option(c, c)));
+
+        const optDefaultForn = new Option("-- Esistenti --", "");
+        selectForn.add(optDefaultForn);
+        forns.forEach(f => selectForn.add(new Option(f, f)));
+
     } catch (e) { console.error("Errore suggerimenti:", e); }
 }
 
@@ -200,13 +271,32 @@ saveProductBtn.onclick = async () => {
 closeModalBtn.onclick = () => productModal.classList.add('hidden');
 
 function updateBreadcrumbs() {
-    let html = isSuperAdmin ? `<span onclick="renderBarList()" style="cursor:pointer; color:blue; text-decoration:underline;">Superadmin</span>` : `<span onclick="renderAdminChoice()" style="cursor:pointer; color:blue; text-decoration:underline;">Home</span>`;
-    if(currentPath.barId) html += ` > <span onclick="renderCategoryList()" style="cursor:pointer; color:blue; text-decoration:underline;">${currentPath.barName}</span>`;
-    if(currentPath.category) html += ` > <b>${currentPath.category}</b>`;
-    breadcrumbs.innerHTML = html;
+    breadcrumbs.innerHTML = "";
+    
+    const base = document.createElement('span');
+    base.style.cssText = "cursor:pointer; color:blue; text-decoration:underline;";
+    base.textContent = isSuperAdmin ? "Superadmin" : "Home";
+    base.onclick = isSuperAdmin ? renderBarList : renderAdminChoice;
+    breadcrumbs.appendChild(base);
+
+    if(currentPath.barId) {
+        breadcrumbs.append(" > ");
+        const barSpan = document.createElement('span');
+        barSpan.style.cssText = "cursor:pointer; color:blue; text-decoration:underline;";
+        barSpan.textContent = currentPath.barName;
+        barSpan.onclick = renderCategoryList;
+        breadcrumbs.appendChild(barSpan);
+    }
+
+    if(currentPath.category) {
+        breadcrumbs.append(" > ");
+        const catB = document.createElement('b');
+        catB.textContent = currentPath.category;
+        breadcrumbs.appendChild(catB);
+    }
 }
 
-window.deleteProduct = async (id) => {
+async function deleteProduct(id) {
     if(confirm("Eliminare?")) {
         ui.showLoader();
         try {
@@ -216,10 +306,10 @@ window.deleteProduct = async (id) => {
         } catch(e) { console.error(e); }
         finally { ui.hideLoader(); }
     }
-};
+}
 
 async function deleteBar(id) {
-    if(confirm("Eliminare bar?")) {
+    if(confirm("Eliminare bar? Tutti i prodotti associati non saranno più visibili (ma resteranno nel DB, andrebbero cancellati manualmente o con Cloud Function)")) {
         ui.showLoader();
         try {
             await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", id));
