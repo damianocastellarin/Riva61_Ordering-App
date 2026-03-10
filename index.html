@@ -107,6 +107,7 @@
   </div>
 
   <script type="module">
+    import { ui } from "./js/ui.js"; 
     import { firebaseConfig } from "./js/constants.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
@@ -124,6 +125,27 @@
       auth, db, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, where, orderBy
     };
+
+    const loginBtn = document.getElementById('loginBtn');
+    if (loginBtn) {
+      loginBtn.onclick = async () => {
+        const email = document.getElementById('login-email').value;
+        const pass = document.getElementById('login-password').value;
+        
+        if(!email || !pass) return alert("Inserisci email e password");
+
+        ui.showLoader();
+
+        try {
+          await signInWithEmailAndPassword(auth, email, pass);
+          ui.showToast("Accesso in corso...");
+        } catch (error) {
+          console.error(error);
+          ui.hideLoader(); 
+          alert("Credenziali non valide");
+        }
+      };
+    }
   </script>
 
   <script src="js/pwa-install.js" defer></script>
