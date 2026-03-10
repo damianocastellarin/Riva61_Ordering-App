@@ -11,12 +11,17 @@ const messaggioFinale = document.getElementById("messaggioFinale");
 const progressContainer = document.getElementById("progressContainer");
 
 window.addEventListener('auth-success', (e) => {
-    caricaDatiDalDatabase(e.detail.uid);
+    const barId = e.detail.barId;
+    if (barId) {
+        caricaDatiDalDatabase(barId);
+    } else {
+        console.error("Errore: barId non trovato per questo utente.");
+    }
 });
 
-async function caricaDatiDalDatabase(uid) {
+async function caricaDatiDalDatabase(barId) {
     try {
-        const prodRef = window.fb.collection(window.fb.db, "bars", uid, "prodotti");
+        const prodRef = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
         const q = window.fb.query(prodRef, window.fb.orderBy("createdAt", "asc"));
         const querySnapshot = await window.fb.getDocs(q);
         
@@ -26,7 +31,8 @@ async function caricaDatiDalDatabase(uid) {
         });
 
         if (prodottiScaricati.length === 0) {
-            console.warn("Nessun prodotto trovato nel database.");
+            console.warn("Nessun prodotto trovato per questo bar.");
+            alert("Questo bar non ha ancora prodotti a catalogo.");
             return;
         }
 
@@ -41,7 +47,8 @@ async function caricaDatiDalDatabase(uid) {
                 .map(p => p.nome)
         }));
 
-        console.log("App pronta con dati ordinati:", CATEGORIE_DINAMICHE);
+        console.log("Dati caricati per il bar:", barId, CATEGORIE_DINAMICHE);
+        
         ripristinaDaLocale();
         
     } catch (error) {
@@ -68,7 +75,7 @@ function ripristinaDaLocale() {
 
 document.getElementById("startBtn").addEventListener("click", () => {
     if (CATEGORIE_DINAMICHE.length === 0) {
-        alert("Caricamento prodotti in corso...");
+        alert("Caricamento prodotti in corso o nessun prodotto disponibile...");
         return;
     }
     resetState();
@@ -102,6 +109,7 @@ function mostraRiepilogo() {
     riepilogoDiv.classList.remove("hidden");
     if (progressContainer) progressContainer.classList.add("hidden");
 }
+
 
 document.getElementById("whatsappBtn").addEventListener("click", () => {
     const testo = encodeURIComponent(messaggioFinale.value);
