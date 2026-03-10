@@ -10,47 +10,44 @@ async function renderBarList() {
     currentPath = { barId: null, barName: '', category: '' };
     updateBreadcrumbs();
     
-    adminView.innerHTML = `
-        <div class="list-container" id="barList">Caricamento bar...</div>
-    `;
+    adminView.innerHTML = `<div class="list-container" id="barList">Caricamento bar...</div>`;
     
-    const querySnapshot = await window.fb.getDocs(window.fb.collection(window.fb.db, "users"));
-    const list = document.getElementById('barList');
-    list.innerHTML = "";
-    
-    querySnapshot.forEach(doc => {
-        const data = doc.data();
-        if(data.role !== 'admin') {
-            const item = document.createElement('div');
-            item.className = 'admin-item';
-            item.innerHTML = `<span>${data.barName || doc.id}</span> <button class="delete-btn">Elimina</button>`;
-            item.onclick = (e) => {
-                if(e.target.tagName !== 'BUTTON') {
-                    currentPath.barId = doc.id;
-                    currentPath.barName = data.barName;
-                    renderCategoryList();
-                }
-            };
-            item.querySelector('.delete-btn').onclick = (e) => {
-                e.stopPropagation();
-                deleteBar(doc.id);
-            };
-            list.appendChild(item);
-        }
-    });
-}
-
-async function deleteBar(uid) {
-    if(confirm("Attenzione: eliminerai i documenti associati a questo bar. L'utente Auth rimarrà attivo ma senza dati. Procedere?")) {
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", uid));
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", uid));
-        renderBarList();
+    try {
+        const querySnapshot = await window.fb.getDocs(window.fb.collection(window.fb.db, "users"));
+        const list = document.getElementById('barList');
+        list.innerHTML = "";
+        
+        querySnapshot.forEach(doc => {
+            const data = doc.data();
+            if(data.role !== 'admin') {
+                const item = document.createElement('div');
+                item.className = 'admin-item';
+                item.innerHTML = `<span>${data.barName || doc.id}</span> <button class="delete-btn">Elimina</button>`;
+                
+                item.onclick = (e) => {
+                    if(e.target.tagName !== 'BUTTON') {
+                        currentPath.barId = doc.id;
+                        currentPath.barName = data.barName;
+                        renderCategoryList();
+                    }
+                };
+                
+                item.querySelector('.delete-btn').onclick = (e) => {
+                    e.stopPropagation();
+                    deleteBar(doc.id);
+                };
+                list.appendChild(item);
+            }
+        });
+    } catch (e) {
+        console.error("Errore caricamento bar:", e);
     }
 }
 
 async function renderCategoryList() {
     currentPath.category = '';
     updateBreadcrumbs();
+    
     adminView.innerHTML = `
         <button class="btn-secondary" id="addCatBtn">+ Nuova Categoria</button>
         <div class="list-container" id="catList">Caricamento categorie...</div>
@@ -58,23 +55,27 @@ async function renderCategoryList() {
     
     document.getElementById('addCatBtn').onclick = addCategoryPrompt;
 
-    const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-    const snap = await window.fb.getDocs(prodRef);
-    const categorie = [...new Set(snap.docs.map(d => d.data().categoria))];
-    
-    const list = document.getElementById('catList');
-    list.innerHTML = categorie.length ? "" : "Nessuna categoria presente.";
-    
-    categorie.forEach(cat => {
-        const item = document.createElement('div');
-        item.className = 'admin-item';
-        item.innerHTML = `<span>${cat}</span>`;
-        item.onclick = () => {
-            currentPath.category = cat;
-            renderProductList();
-        };
-        list.appendChild(item);
-    });
+    try {
+        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
+        const snap = await window.fb.getDocs(prodRef);
+        const categorie = [...new Set(snap.docs.map(d => d.data().categoria))];
+        
+        const list = document.getElementById('catList');
+        list.innerHTML = categorie.length ? "" : "Nessuna categoria presente.";
+        
+        categorie.forEach(cat => {
+            const item = document.createElement('div');
+            item.className = 'admin-item';
+            item.innerHTML = `<span>${cat}</span>`;
+            item.onclick = () => {
+                currentPath.category = cat;
+                renderProductList();
+            };
+            list.appendChild(item);
+        });
+    } catch (e) {
+        console.error("Errore categorie:", e);
+    }
 }
 
 async function renderProductList() {
@@ -110,14 +111,23 @@ async function renderProductList() {
 }
 
 function updateBreadcrumbs() {
-    let html = `<span onclick="renderBarList()">Admin</span>`;
+    let html = `<span style="cursor:pointer; color:var(--primary-color)" onclick="renderBarList()">Admin</span>`;
+    
     if(currentPath.barId) {
-        html += ` > <span onclick="renderCategoryList()">${currentPath.barName}</span>`;
+        html += ` > <span style="cursor:pointer; color:var(--primary-color)" onclick="renderCategoryList()">${currentPath.barName}</span>`;
     }
     if(currentPath.category) {
-        html += ` > <span>${currentPath.category}</span>`;
+        html += ` > <span style="font-weight:bold">${currentPath.category}</span>`;
     }
     breadcrumbs.innerHTML = html;
+}
+
+async function addCategoryPrompt() {
+    const cat = prompt("Nome nuova categoria:");
+    if(cat) {
+        currentPath.category = cat;
+        addProductPrompt();
+    }
 }
 
 async function addProductPrompt() {
@@ -134,15 +144,18 @@ async function addProductPrompt() {
 
 async function deleteProduct(id) {
     if(confirm("Eliminare prodotto?")) {
-        await window.fb.deleteDoc(window.fb.doc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id)));
+        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id));
         renderProductList();
     }
 }
 
-async function addCategoryPrompt() {
-    const cat = prompt("Nome nuova categoria:");
-    if(cat) {
-        currentPath.category = cat;
-        addProductPrompt();
+async function deleteBar(uid) {
+    if(confirm("Attenzione: eliminerai i documenti associati a questo bar. Procedere?")) {
+        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", uid));
+        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", uid));
+        renderBarList();
     }
 }
+
+window.renderBarList = renderBarList;
+window.renderCategoryList = renderCategoryList;
