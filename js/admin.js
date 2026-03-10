@@ -1,3 +1,5 @@
+import { ui } from './ui.js';
+
 const adminView = document.getElementById('admin-view');
 const breadcrumbs = document.getElementById('breadcrumbs');
 
@@ -127,7 +129,9 @@ async function renderProductList() {
 }
 
 async function openModal(product = null) {
+    ui.showLoader();
     await updateSuggestions();
+    ui.hideLoader();
 
     if (product) {
         modalTitle.innerText = "Modifica Prodotto";
@@ -150,16 +154,12 @@ async function updateSuggestions() {
         const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
         const snap = await window.fb.getDocs(prodRef);
         const data = snap.docs.map(d => d.data());
-
         const cats = [...new Set(data.map(p => p.categoria))].sort();
         const forns = [...new Set(data.map(p => p.fornitore))].sort();
-
         const selectCat = document.getElementById('selectCatQuick');
         const selectForn = document.getElementById('selectFornQuick');
-
         selectCat.innerHTML = `<option value="">-- Esistenti --</option>` + 
             cats.map(c => `<option value="${c}">${c}</option>`).join('');
-
         selectForn.innerHTML = `<option value="">-- Esistenti --</option>` + 
             forns.map(f => `<option value="${f}">${f}</option>`).join('');
     } catch (e) { console.error("Errore suggerimenti:", e); }
@@ -176,6 +176,7 @@ saveProductBtn.onclick = async () => {
 
     if (!data.nome || !data.categoria) return alert("Nome e Categoria sono obbligatori");
 
+    ui.showLoader();
     try {
         const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
         if (id) {
@@ -185,9 +186,15 @@ saveProductBtn.onclick = async () => {
             await window.fb.addDoc(prodRef, data);
         }
         productModal.classList.add('hidden');
+        ui.showToast("Salvato con successo!");
         currentPath.category = data.categoria;
         renderProductList();
-    } catch (e) { console.error(e); }
+    } catch (e) { 
+        console.error(e); 
+        alert("Errore durante il salvataggio");
+    } finally {
+        ui.hideLoader();
+    }
 };
 
 closeModalBtn.onclick = () => productModal.classList.add('hidden');
@@ -201,14 +208,24 @@ function updateBreadcrumbs() {
 
 window.deleteProduct = async (id) => {
     if(confirm("Eliminare?")) {
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id));
-        renderProductList();
+        ui.showLoader();
+        try {
+            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id));
+            ui.showToast("Eliminato");
+            renderProductList();
+        } catch(e) { console.error(e); }
+        finally { ui.hideLoader(); }
     }
 };
 
 async function deleteBar(id) {
     if(confirm("Eliminare bar?")) {
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", id));
-        renderBarList();
+        ui.showLoader();
+        try {
+            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", id));
+            ui.showToast("Bar eliminato");
+            renderBarList();
+        } catch(e) { console.error(e); }
+        finally { ui.hideLoader(); }
     }
 }
