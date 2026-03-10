@@ -71,11 +71,9 @@ if (loginBtn) {
 
 if (togglePassword && passwordInput) {
     togglePassword.innerHTML = getIconHTML('show');
-
     togglePassword.addEventListener('click', function () {
         const isPassword = passwordInput.getAttribute('type') === 'password';
         const type = isPassword ? 'text' : 'password';
-        
         passwordInput.setAttribute('type', type);
         this.innerHTML = isPassword ? getIconHTML('hide') : getIconHTML('show');
         this.classList.toggle('hidden-pass');
@@ -83,7 +81,8 @@ if (togglePassword && passwordInput) {
 }
 
 document.addEventListener('click', async (e) => {
-    if (e.target.id === 'logoutBtn' || e.target.id === 'logoutAdminBtn') {
+    const btn = e.target.closest('#logoutBtn, #logoutAdminBtn');
+    if (btn) {
         if (confirm("Vuoi uscire dall'account?")) {
             ui.showLoader();
             try {

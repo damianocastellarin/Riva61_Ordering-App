@@ -23,25 +23,25 @@
 
   <main class="container">
     <div id="login-container">
-          <h1 class="main-title">Accesso Riservato</h1>
-          <div id="login-form">
-            <input type="email" id="login-email" placeholder="Email">
-            
-            <div class="password-wrapper">
-              <input type="password" id="login-password" placeholder="Password">
-              <span id="togglePassword" class="toggle-icon"></span>
-            </div>
-            
-            <button id="loginBtn">Accedi</button>
-            <button id="installBtnLogin" class="btn-install hidden">Installa l'App</button>
-          </div>
+      <h1 class="main-title">Accesso Riservato</h1>
+      <div id="login-form">
+        <input type="email" id="login-email" placeholder="Email">
+        
+        <div class="password-wrapper">
+          <input type="password" id="login-password" placeholder="Password">
+          <span id="togglePassword" class="toggle-icon"></span>
         </div>
+        
+        <button id="loginBtn">Accedi</button>
+        <button id="installBtnLogin" class="btn-install hidden">Installa l'App</button>
+      </div>
+    </div>
 
     <div id="app-content" class="hidden">
       <div id="home">
         <h1 class="main-title">Ordini Bar</h1>
         <button id="startBtn">Inizia Nuovo Ordine</button>
-        <button id="logoutBtn">Esci dall'account</button>
+        <button id="logoutBtn" class="btn-danger">Esci dall'account</button>
         <button id="installBtnHome" class="btn-install hidden">Installa App</button>
       </div>
       
@@ -49,8 +49,8 @@
         <header class="header">
           <h2 id="categoriaNome"></h2>
           <div class="nav-buttons">
-            <button id="indietroBtn" class="btn-small">Indietro</button>
-            <button id="avantiBtn" class="btn-small">Avanti</button>
+            <button id="indietroBtn" class="btn-small"></button>
+            <button id="avantiBtn" class="btn-small"></button>
           </div>
         </header>
         <div id="prodottiContainer"></div>
@@ -60,15 +60,15 @@
         <textarea id="messaggioFinale" readonly></textarea>
         <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
         <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
-        <button id="riepilogoIndietroBtn" class="btn-secondary">Torna alla modifica</button>
+        <button id="riepilogoIndietroBtn" class="btn-secondary"></button>
         <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
       </div>
     </div>
 
     <div id="admin-content" class="hidden">
-      <header>
-          <h2>Area Superadmin</h2>
-          <button id="logoutAdminBtn">Esci</button>
+      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+          <h2 id="adminTitleHeader">Area Gestionale</h2>
+          <button id="logoutAdminBtn" class="btn-small"></button>
       </header>
       <div id="breadcrumbs"></div>
       <div id="admin-view"></div>
@@ -107,7 +107,7 @@
 
       <div class="modal-buttons">
         <button id="closeModalBtn" class="btn-secondary">Annulla</button>
-        <button id="saveProductBtn" class="btn-primary">Salva</button>
+        <button id="saveProductBtn" class="btn-primary"></button>
       </div>
     </div>
   </div>
@@ -115,6 +115,7 @@
   <script type="module">
     import { ui } from "./js/ui.js"; 
     import { firebaseConfig } from "./js/constants.js";
+    import { getIconHTML } from "./js/icons.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
       getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
@@ -131,6 +132,16 @@
       auth, db, signInWithEmailAndPassword, onAuthStateChanged, signOut,
       collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, where, orderBy
     };
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const logoutAdminBtn = document.getElementById('logoutAdminBtn');
+        const saveProductBtn = document.getElementById('saveProductBtn');
+        const adminTitleHeader = document.getElementById('adminTitleHeader');
+        
+        if (logoutAdminBtn) logoutAdminBtn.innerHTML = getIconHTML('logout');
+        if (saveProductBtn) saveProductBtn.innerHTML = `${getIconHTML('save')} Salva`;
+        if (adminTitleHeader) adminTitleHeader.innerHTML = `${getIconHTML('admin')} Area Gestionale`;
+    });
 
     const loginBtn = document.getElementById('loginBtn');
     if (loginBtn) {

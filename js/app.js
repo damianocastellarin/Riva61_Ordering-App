@@ -1,6 +1,7 @@
 import { state, resetState } from "./state.js";
 import { renderStep } from "./ui.js";
 import { generaMessaggio } from "./orderBuilder.js";
+import { getIconHTML } from "./icons.js";
 
 let CATEGORIE_DINAMICHE = [];
 
@@ -10,13 +11,15 @@ const riepilogoDiv = document.getElementById("riepilogo");
 const messaggioFinale = document.getElementById("messaggioFinale");
 const progressContainer = document.getElementById("progressContainer");
 
+document.getElementById("indietroBtn").innerHTML = `${getIconHTML('back')} Indietro`;
+document.getElementById("avantiBtn").innerHTML = `Avanti ${getIconHTML('save')}`;
+document.getElementById("riepilogoIndietroBtn").innerHTML = `${getIconHTML('back')} Modifica`;
+document.getElementById("logoutBtn").innerHTML = `${getIconHTML('logout')} Esci dall'account`;
+document.getElementById("startBtn").innerHTML = `${getIconHTML('add')} Inizia Nuovo Ordine`;
+
 window.addEventListener('auth-success', (e) => {
     const barId = e.detail.barId;
-    if (barId) {
-        caricaDatiDalDatabase(barId);
-    } else {
-        console.error("Errore: barId non trovato per questo utente.");
-    }
+    if (barId) caricaDatiDalDatabase(barId);
 });
 
 async function caricaDatiDalDatabase(barId) {
@@ -26,34 +29,20 @@ async function caricaDatiDalDatabase(barId) {
         const querySnapshot = await window.fb.getDocs(q);
         
         const prodottiScaricati = [];
-        querySnapshot.forEach((doc) => {
-            prodottiScaricati.push({ id: doc.id, ...doc.data() });
-        });
+        querySnapshot.forEach((doc) => prodottiScaricati.push({ id: doc.id, ...doc.data() }));
 
-        if (prodottiScaricati.length === 0) {
-            console.warn("Nessun prodotto trovato per questo bar.");
-            alert("Questo bar non ha ancora prodotti a catalogo.");
-            return;
-        }
+        if (prodottiScaricati.length === 0) return;
 
         window.mappaProdottiCompleta = prodottiScaricati;
-
         const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
         
         CATEGORIE_DINAMICHE = nomiCategorie.map(nomeCat => ({
             nome: nomeCat,
-            prodotti: prodottiScaricati
-                .filter(p => p.categoria === nomeCat)
-                .map(p => p.nome)
+            prodotti: prodottiScaricati.filter(p => p.categoria === nomeCat).map(p => p.nome)
         }));
 
-        console.log("Dati caricati per il bar:", barId, CATEGORIE_DINAMICHE);
-        
         ripristinaDaLocale();
-        
-    } catch (error) {
-        console.error("Errore nel recupero dati Firestore:", error);
-    }
+    } catch (error) { console.error(error); }
 }
 
 function ripristinaDaLocale() {
@@ -62,7 +51,6 @@ function ripristinaDaLocale() {
         const backup = JSON.parse(datiSalvati);
         state.stepIndex = backup.stepIndex;
         state.risposte = backup.risposte;
-        
         home.classList.add("hidden");
         if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
             mostraRiepilogo();
@@ -74,10 +62,7 @@ function ripristinaDaLocale() {
 }
 
 document.getElementById("startBtn").addEventListener("click", () => {
-    if (CATEGORIE_DINAMICHE.length === 0) {
-        alert("Caricamento prodotti in corso o nessun prodotto disponibile...");
-        return;
-    }
+    if (CATEGORIE_DINAMICHE.length === 0) return alert("Caricamento...");
     resetState();
     home.classList.add("hidden");
     stepDiv.classList.remove("hidden");
@@ -88,11 +73,8 @@ document.getElementById("startBtn").addEventListener("click", () => {
 document.getElementById("avantiBtn").addEventListener("click", () => {
     state.stepIndex++;
     sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
-    if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
-        mostraRiepilogo();
-    } else {
-        renderStep(state, CATEGORIE_DINAMICHE);
-    }
+    if (state.stepIndex >= CATEGORIE_DINAMICHE.length) mostraRiepilogo();
+    else renderStep(state, CATEGORIE_DINAMICHE);
 });
 
 document.getElementById("indietroBtn").addEventListener("click", () => {
@@ -110,20 +92,18 @@ function mostraRiepilogo() {
     if (progressContainer) progressContainer.classList.add("hidden");
 }
 
-
 document.getElementById("whatsappBtn").addEventListener("click", () => {
     const testo = encodeURIComponent(messaggioFinale.value);
-    const url = `https://wa.me/?text=${testo}`;
-    window.open(url, "_blank");
+    window.open(`https://wa.me/?text=${testo}`, "_blank");
 });
 
 document.getElementById("copiaBtn").addEventListener("click", async () => {
     try {
         await navigator.clipboard.writeText(messaggioFinale.value);
         const btn = document.getElementById("copiaBtn");
-        const originalText = btn.textContent;
+        const originalHTML = btn.innerHTML;
         btn.textContent = "Copiato!";
-        setTimeout(() => { btn.textContent = originalText; }, 2000);
+        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
     } catch (err) { console.error(err); }
 });
 
