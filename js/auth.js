@@ -1,4 +1,5 @@
 import { ui } from './ui.js';
+import { getIconHTML } from './icons.js';
 
 const loginContainer = document.getElementById('login-container');
 const appContent = document.getElementById('app-content');
@@ -69,10 +70,14 @@ if (loginBtn) {
 }
 
 if (togglePassword && passwordInput) {
+    togglePassword.innerHTML = getIconHTML('show');
+
     togglePassword.addEventListener('click', function () {
-        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        const isPassword = passwordInput.getAttribute('type') === 'password';
+        const type = isPassword ? 'text' : 'password';
+        
         passwordInput.setAttribute('type', type);
-        this.textContent = type === 'password' ? '👁️' : '🔒';
+        this.innerHTML = isPassword ? getIconHTML('hide') : getIconHTML('show');
         this.classList.toggle('hidden-pass');
     });
 }
