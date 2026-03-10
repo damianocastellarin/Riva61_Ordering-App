@@ -34,7 +34,7 @@
       <div id="home">
         <h1 class="main-title">Ordini Bar</h1>
         <button id="startBtn">Inizia Nuovo Ordine</button>
-        <button id="logoutBtn" style="background:none; color:gray; border:none; margin-top:20px; cursor:pointer; text-decoration: underline;">Esci dall'account</button>
+        <button id="logoutBtn">Esci dall'account</button>
         <button id="installBtn" class="btn-install hidden">Installa App</button>
       </div>
       
@@ -87,7 +87,8 @@
       doc, 
       deleteDoc, 
       query, 
-      where 
+      where,
+      orderBy 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
@@ -107,7 +108,8 @@
       doc,
       deleteDoc,
       query,
-      where
+      where,
+      orderBy
     };
   </script>
 
