@@ -57,7 +57,9 @@ async function renderCategoryList() {
 
     try {
         const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-        const snap = await window.fb.getDocs(prodRef);
+        const q = window.fb.query(prodRef, window.fb.orderBy("createdAt", "asc"));
+        const snap = await window.fb.getDocs(q);
+        
         const categorie = [...new Set(snap.docs.map(d => d.data().categoria))];
         
         const list = document.getElementById('catList');
@@ -87,27 +89,35 @@ async function renderProductList() {
     
     document.getElementById('addProdBtn').onclick = addProductPrompt;
 
-    const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-    const q = window.fb.query(prodRef, window.fb.where("categoria", "==", currentPath.category));
-    const snap = await window.fb.getDocs(q);
-    
-    const list = document.getElementById('prodList');
-    list.innerHTML = "";
+    try {
+        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
+        const q = window.fb.query(
+            prodRef, 
+            window.fb.where("categoria", "==", currentPath.category),
+            window.fb.orderBy("createdAt", "asc")
+        );
+        const snap = await window.fb.getDocs(q);
+        
+        const list = document.getElementById('prodList');
+        list.innerHTML = "";
 
-    snap.forEach(doc => {
-        const p = doc.data();
-        const item = document.createElement('div');
-        item.className = 'admin-item';
-        item.innerHTML = `
-            <div><b>${p.nome}</b> <br><small>${p.fornitore}</small></div>
-            <button class="delete-btn">X</button>
-        `;
-        item.querySelector('.delete-btn').onclick = (e) => {
-            e.stopPropagation();
-            deleteProduct(doc.id);
-        };
-        list.appendChild(item);
-    });
+        snap.forEach(doc => {
+            const p = doc.data();
+            const item = document.createElement('div');
+            item.className = 'admin-item';
+            item.innerHTML = `
+                <div><b>${p.nome}</b> <br><small>${p.fornitore}</small></div>
+                <button class="delete-btn">X</button>
+            `;
+            item.querySelector('.delete-btn').onclick = (e) => {
+                e.stopPropagation();
+                deleteProduct(doc.id);
+            };
+            list.appendChild(item);
+        });
+    } catch (e) {
+        console.error("Errore prodotti:", e);
+    }
 }
 
 function updateBreadcrumbs() {
@@ -136,10 +146,18 @@ async function addProductPrompt() {
     const cat = currentPath.category || prompt("Categoria:");
     if(!nome) return;
 
-    await window.fb.addDoc(window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti"), {
-        nome, fornitore, categoria: cat, active: true
-    });
-    renderProductList();
+    try {
+        await window.fb.addDoc(window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti"), {
+            nome, 
+            fornitore, 
+            categoria: cat, 
+            active: true,
+            createdAt: Date.now()
+        });
+        renderProductList();
+    } catch (e) {
+        console.error("Errore salvataggio:", e);
+    }
 }
 
 async function deleteProduct(id) {

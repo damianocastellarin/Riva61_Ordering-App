@@ -16,9 +16,9 @@ window.addEventListener('auth-success', (e) => {
 
 async function caricaDatiDalDatabase(uid) {
     try {
-        const querySnapshot = await window.fb.getDocs(
-            window.fb.collection(window.fb.db, "bars", uid, "prodotti")
-        );
+        const prodRef = window.fb.collection(window.fb.db, "bars", uid, "prodotti");
+        const q = window.fb.query(prodRef, window.fb.orderBy("createdAt", "asc"));
+        const querySnapshot = await window.fb.getDocs(q);
         
         const prodottiScaricati = [];
         querySnapshot.forEach((doc) => {
@@ -26,13 +26,14 @@ async function caricaDatiDalDatabase(uid) {
         });
 
         if (prodottiScaricati.length === 0) {
-            console.warn("Nessun prodotto trovato nel database per questo bar.");
+            console.warn("Nessun prodotto trovato nel database.");
             return;
         }
 
         window.mappaProdottiCompleta = prodottiScaricati;
 
         const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
+        
         CATEGORIE_DINAMICHE = nomiCategorie.map(nomeCat => ({
             nome: nomeCat,
             prodotti: prodottiScaricati
@@ -40,8 +41,7 @@ async function caricaDatiDalDatabase(uid) {
                 .map(p => p.nome)
         }));
 
-        console.log("App pronta con dati dinamici:", CATEGORIE_DINAMICHE);
-        
+        console.log("App pronta con dati ordinati:", CATEGORIE_DINAMICHE);
         ripristinaDaLocale();
         
     } catch (error) {
@@ -68,7 +68,7 @@ function ripristinaDaLocale() {
 
 document.getElementById("startBtn").addEventListener("click", () => {
     if (CATEGORIE_DINAMICHE.length === 0) {
-        alert("Caricamento prodotti in corso, attendi un istante...");
+        alert("Caricamento prodotti in corso...");
         return;
     }
     resetState();
