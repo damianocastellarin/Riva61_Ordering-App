@@ -15,6 +15,9 @@ const saveProductBtn = document.getElementById('saveProductBtn');
 let currentPath = { barId: null, barName: '', category: '' };
 let isSuperAdmin = false;
 
+if (closeModalBtn) closeModalBtn.innerHTML = `${getIconHTML('cancel')} Annulla`;
+if (saveProductBtn) saveProductBtn.innerHTML = `${getIconHTML('save')} Salva`;
+
 window.renderBarList = renderBarList;
 window.renderAdminChoice = renderAdminChoice;
 window.renderCategoryList = renderCategoryList;

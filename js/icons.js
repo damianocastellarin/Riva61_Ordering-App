@@ -8,6 +8,7 @@ export const ICONS = {
     logout: "fas fa-sign-out-alt",
     admin: "fas fa-user",
     back: "fas fa-chevron-left",
+    cancel: "fas fa-times",
 };
 
 export function getIconHTML(iconKey) {
