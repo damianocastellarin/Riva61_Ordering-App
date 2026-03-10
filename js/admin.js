@@ -16,6 +16,7 @@ let isSuperAdmin = false;
 window.renderBarList = renderBarList;
 window.renderAdminChoice = renderAdminChoice;
 window.renderCategoryList = renderCategoryList;
+window.openModal = openModal;
 
 window.addEventListener('superadmin-success', () => { isSuperAdmin = true; renderBarList(); });
 window.addEventListener('admin-bar-choice', (e) => {
@@ -112,10 +113,11 @@ async function renderProductList() {
             const p = doc.data();
             const item = document.createElement('div');
             item.className = 'admin-item';
+            const productData = JSON.stringify({id: doc.id, ...p}).replace(/'/g, "&apos;");
             item.innerHTML = `
                 <div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>
                 <div>
-                    <button class="edit-btn" onclick='openModal(${JSON.stringify({id: doc.id, ...p}).replace(/'/g, "&apos;")})'>✏️</button>
+                    <button class="edit-btn" onclick='openModal(${productData})'>✏️</button>
                     <button class="delete-btn" onclick="deleteProduct('${doc.id}')">X</button>
                 </div>
             `;
@@ -144,15 +146,23 @@ async function openModal(product = null) {
 }
 
 async function updateSuggestions() {
-    const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-    const snap = await window.fb.getDocs(prodRef);
-    const data = snap.docs.map(d => d.data());
+    try {
+        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
+        const snap = await window.fb.getDocs(prodRef);
+        const data = snap.docs.map(d => d.data());
 
-    const cats = [...new Set(data.map(p => p.categoria))];
-    const forns = [...new Set(data.map(p => p.fornitore))];
+        const cats = [...new Set(data.map(p => p.categoria))].sort();
+        const forns = [...new Set(data.map(p => p.fornitore))].sort();
 
-    document.getElementById('categorySuggestions').innerHTML = cats.map(c => `<option value="${c}">`).join('');
-    document.getElementById('providerSuggestions').innerHTML = forns.map(f => `<option value="${f}">`).join('');
+        const selectCat = document.getElementById('selectCatQuick');
+        const selectForn = document.getElementById('selectFornQuick');
+
+        selectCat.innerHTML = `<option value="">-- Esistenti --</option>` + 
+            cats.map(c => `<option value="${c}">${c}</option>`).join('');
+
+        selectForn.innerHTML = `<option value="">-- Esistenti --</option>` + 
+            forns.map(f => `<option value="${f}">${f}</option>`).join('');
+    } catch (e) { console.error("Errore suggerimenti:", e); }
 }
 
 saveProductBtn.onclick = async () => {

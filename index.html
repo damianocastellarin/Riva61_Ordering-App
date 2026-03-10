@@ -70,24 +70,32 @@
 
   <div id="productModal" class="modal hidden">
     <div class="modal-content">
-      <h3 id="modalTitle">Nuovo Prodotto</h3>
+      <h3 id="modalTitle">Gestione Prodotto</h3>
       <input type="hidden" id="modalProductId">
       
       <div class="form-group">
         <label>Nome Prodotto</label>
-        <input type="text" id="modalProdNome" placeholder="es. Cornetto crema">
+        <input type="text" id="modalProdNome" placeholder="es. Croissant">
       </div>
 
       <div class="form-group">
         <label>Categoria</label>
-        <input type="text" id="modalProdCat" list="categorySuggestions" placeholder="Scegli o scrivi...">
-        <datalist id="categorySuggestions"></datalist>
+        <div class="select-wrapper">
+          <input type="text" id="modalProdCat" placeholder="Scrivi o scegli...">
+          <select id="selectCatQuick" onchange="document.getElementById('modalProdCat').value = this.value">
+            <option value="">-- Esistenti --</option>
+          </select>
+        </div>
       </div>
 
       <div class="form-group">
         <label>Fornitore</label>
-        <input type="text" id="modalProdFornitore" list="providerSuggestions" placeholder="Scegli o scrivi...">
-        <datalist id="providerSuggestions"></datalist>
+        <div class="select-wrapper">
+          <input type="text" id="modalProdFornitore" placeholder="Scrivi o scegli...">
+          <select id="selectFornQuick" onchange="document.getElementById('modalProdFornitore').value = this.value">
+            <option value="">-- Esistenti --</option>
+          </select>
+        </div>
       </div>
 
       <div class="modal-buttons">
@@ -101,23 +109,10 @@
     import { firebaseConfig } from "./js/constants.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import { 
-      getAuth, 
-      signInWithEmailAndPassword, 
-      onAuthStateChanged, 
-      signOut 
+      getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import { 
-      getFirestore, 
-      collection, 
-      getDocs, 
-      getDoc,
-      setDoc,
-      addDoc, 
-      doc, 
-      deleteDoc, 
-      query, 
-      where,
-      orderBy 
+      getFirestore, collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, where, orderBy 
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const app = initializeApp(firebaseConfig);
@@ -125,20 +120,8 @@
     const db = getFirestore(app);
 
     window.fb = { 
-      auth, db,
-      signInWithEmailAndPassword,
-      onAuthStateChanged,
-      signOut,
-      collection,
-      getDocs,
-      getDoc,
-      setDoc,
-      addDoc,
-      doc,
-      deleteDoc,
-      query,
-      where,
-      orderBy
+      auth, db, signInWithEmailAndPassword, onAuthStateChanged, signOut,
+      collection, getDocs, getDoc, setDoc, addDoc, doc, deleteDoc, query, where, orderBy
     };
   </script>
 
