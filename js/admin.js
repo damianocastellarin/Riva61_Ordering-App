@@ -75,7 +75,7 @@ async function renderCategoryList() {
             list.appendChild(item);
         });
     } catch (e) {
-        console.error("Errore categorie:", e);
+        console.error("ERRORE CARICAMENTO CATEGORIE:", e);
     }
 }
 
@@ -115,7 +115,9 @@ async function renderProductList() {
             list.appendChild(item);
         });
     } catch (e) {
-        console.error("Errore prodotti:", e);
+        console.error("ERRORE CARICAMENTO PRODOTTI (CONTROLLA IL LINK PER L'INDICE):", e);
+        const list = document.getElementById('prodList');
+        list.innerHTML = "Errore nel caricamento. Apri la console (F12) per il link dell'indice.";
     }
 }
 
@@ -157,22 +159,32 @@ async function addProductPrompt() {
         });
         renderProductList();
     } catch (e) {
-        console.error("Errore salvataggio:", e);
+        console.error("ERRORE SALVATAGGIO (CONTROLLA IL LINK PER L'INDICE):", e);
+        alert("Errore durante il salvataggio. Apri la console (F12) per il link dell'indice.");
     }
 }
 
 async function deleteProduct(id) {
     if(confirm("Eliminare prodotto?")) {
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id));
-        renderProductList();
+        try {
+            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id));
+            renderProductList();
+        } catch (e) {
+            console.error("Errore eliminazione prodotto:", e);
+        }
     }
 }
 
 async function deleteBar(uid) {
     if(confirm("Eliminare bar? Tutti i dati andranno persi.")) {
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", uid));
-        await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", uid));
-        renderBarList();
+        try {
+            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", uid));
+            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", uid));
+            renderBarList();
+        } catch (e) {
+            console.error("ERRORE FIREBASE DETTAGLIATO:", e);
+            alert("Errore durante l'eliminazione! Controlla la console.");
+        }
     }
 }
 
