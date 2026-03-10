@@ -9,7 +9,6 @@ window.addEventListener('admin-success', () => {
 async function renderBarList() {
     currentPath = { barId: null, barName: '', category: '' };
     updateBreadcrumbs();
-    
     adminView.innerHTML = `<div class="list-container" id="barList">Caricamento bar...</div>`;
     
     try {
@@ -144,12 +143,14 @@ async function addProductPrompt() {
     const nome = prompt("Nome prodotto:");
     const fornitore = prompt("Fornitore:");
     const cat = currentPath.category || prompt("Categoria:");
+    
     if(!nome) return;
 
     try {
-        await window.fb.addDoc(window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti"), {
-            nome, 
-            fornitore, 
+        const colRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
+        await window.fb.addDoc(colRef, {
+            nome: nome, 
+            fornitore: fornitore || "N/A", 
             categoria: cat, 
             active: true,
             createdAt: Date.now()
@@ -168,7 +169,7 @@ async function deleteProduct(id) {
 }
 
 async function deleteBar(uid) {
-    if(confirm("Attenzione: eliminerai i documenti associati a questo bar. Procedere?")) {
+    if(confirm("Eliminare bar? Tutti i dati andranno persi.")) {
         await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", uid));
         await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", uid));
         renderBarList();
