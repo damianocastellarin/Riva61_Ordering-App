@@ -1,5 +1,6 @@
 import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
+import { dbService } from './services/db.js';
 
 const adminView = document.getElementById('admin-view');
 const breadcrumbs = document.getElementById('breadcrumbs');
@@ -62,40 +63,36 @@ async function renderBarList() {
     isSuperAdmin = true;
     currentPath = { barId: null, barName: '', category: '' };
     updateBreadcrumbs();
-    adminView.innerHTML = "";
-    const list = document.createElement('div');
-    list.className = "list-container";
-    list.textContent = "Caricamento bar...";
-    adminView.appendChild(list);
+    adminView.innerHTML = `<div class="list-container">Caricamento bar...</div>`;
 
     try {
-        const querySnapshot = await window.fb.getDocs(window.fb.collection(window.fb.db, "users"));
+        const bars = await dbService.getBars();
+        const list = adminView.querySelector('.list-container');
         list.textContent = "";
-        querySnapshot.forEach(docSnap => {
-            const data = docSnap.data();
-            if(data.role === 'admin') {
-                const item = document.createElement('div');
-                item.className = 'admin-item';
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = data.barName || docSnap.id;
-                
-                const delBtn = document.createElement('button');
-                delBtn.className = 'delete-btn';
-                delBtn.innerHTML = getIconHTML('delete');
-                delBtn.onclick = (e) => { e.stopPropagation(); deleteBar(docSnap.id); };
+        
+        bars.forEach(bar => {
+            const item = document.createElement('div');
+            item.className = 'admin-item';
+            
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = bar.barName || bar.id;
+            
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.innerHTML = getIconHTML('delete');
+            delBtn.onclick = (e) => { e.stopPropagation(); deleteBar(bar.id); };
 
-                item.append(nameSpan, delBtn);
-                item.onclick = (e) => {
-                    if(!e.target.closest('.delete-btn')) {
-                        currentPath.barId = data.barId || docSnap.id;
-                        currentPath.barName = data.barName || "Bar";
-                        renderCategoryList();
-                    }
-                };
-                list.appendChild(item);
-            }
+            item.append(nameSpan, delBtn);
+            item.onclick = (e) => {
+                if(!e.target.closest('.delete-btn')) {
+                    currentPath.barId = bar.id;
+                    currentPath.barName = bar.barName || "Bar";
+                    renderCategoryList();
+                }
+            };
+            list.appendChild(item);
         });
-    } catch (e) { console.error(e); list.textContent = "Errore nel caricamento."; }
+    } catch (e) { console.error(e); adminView.innerHTML = "Errore nel caricamento."; }
 }
 
 async function renderCategoryList() {
@@ -108,16 +105,14 @@ async function renderCategoryList() {
     addBtn.style.marginBottom = "10px";
     addBtn.innerHTML = `${getIconHTML('add')} Nuova Categoria`;
     addBtn.onclick = () => openModal();
-    adminView.appendChild(addBtn);
-
+    
     const list = document.createElement('div');
     list.className = "list-container";
-    adminView.appendChild(list);
+    adminView.append(addBtn, list);
 
     try {
-        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-        const snap = await window.fb.getDocs(prodRef);
-        const categorie = [...new Set(snap.docs.map(d => d.data().categoria))].sort();
+        const products = await dbService.getProducts(currentPath.barId);
+        const categorie = [...new Set(products.map(p => p.categoria))].sort();
         categorie.forEach(cat => {
             if(!cat) return;
             const item = document.createElement('div');
@@ -132,41 +127,38 @@ async function renderCategoryList() {
 async function renderProductList() {
     updateBreadcrumbs();
     adminView.innerHTML = "";
+    
     const addBtn = document.createElement('button');
     addBtn.className = "btn-secondary";
     addBtn.style.marginBottom = "10px";
     addBtn.innerHTML = `${getIconHTML('add')} Nuovo Prodotto`;
     addBtn.onclick = () => openModal();
-    adminView.appendChild(addBtn);
 
     const list = document.createElement('div');
     list.className = "list-container";
-    adminView.appendChild(list);
+    adminView.append(addBtn, list);
 
     try {
-        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-        const q = window.fb.query(prodRef, window.fb.where("categoria", "==", currentPath.category));
-        const snap = await window.fb.getDocs(q);
-        snap.forEach(docSnap => {
-            const p = docSnap.data();
+        const prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
+        prodotti.forEach(p => {
             const item = document.createElement('div');
             item.className = 'admin-item';
-            const info = document.createElement('div');
-            info.innerHTML = `<b>${p.nome}</b><br><small>${p.fornitore}</small>`;
+            item.innerHTML = `
+                <div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>
+                <div class="actions"></div>
+            `;
             
-            const actions = document.createElement('div');
             const editBtn = document.createElement('button');
             editBtn.className = "edit-btn";
             editBtn.innerHTML = getIconHTML('edit');
-            editBtn.onclick = () => openModal({id: docSnap.id, ...p});
+            editBtn.onclick = () => openModal(p);
 
             const delBtn = document.createElement('button');
             delBtn.className = "delete-btn";
             delBtn.innerHTML = getIconHTML('delete');
-            delBtn.onclick = () => deleteProduct(docSnap.id);
+            delBtn.onclick = () => deleteProduct(p.id);
 
-            actions.append(editBtn, delBtn);
-            item.append(info, actions);
+            item.querySelector('.actions').append(editBtn, delBtn);
             list.appendChild(item);
         });
     } catch (e) { console.error(e); }
@@ -176,6 +168,7 @@ async function openModal(product = null) {
     ui.showLoader();
     await updateSuggestions();
     ui.hideLoader();
+    
     if (product) {
         modalTitle.textContent = "Modifica Prodotto";
         modalProductId.value = product.id;
@@ -194,15 +187,15 @@ async function openModal(product = null) {
 
 async function updateSuggestions() {
     try {
-        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-        const snap = await window.fb.getDocs(prodRef);
-        const data = snap.docs.map(d => d.data());
-        const cats = [...new Set(data.map(p => p.categoria))].sort();
-        const forns = [...new Set(data.map(p => p.fornitore))].sort();
+        const products = await dbService.getProducts(currentPath.barId);
+        const cats = [...new Set(products.map(p => p.categoria))].sort();
+        const forns = [...new Set(products.map(p => p.fornitore))].sort();
+        
         const selectCat = document.getElementById('selectCatQuick');
         const selectForn = document.getElementById('selectFornQuick');
         selectCat.innerHTML = '<option value="">-- Esistenti --</option>';
         selectForn.innerHTML = '<option value="">-- Esistenti --</option>';
+        
         cats.forEach(c => selectCat.add(new Option(c, c)));
         forns.forEach(f => selectForn.add(new Option(f, f)));
     } catch (e) { console.error(e); }
@@ -216,21 +209,17 @@ saveProductBtn.onclick = async () => {
         fornitore: modalProdFornitore.value.trim() || "N/A",
         updatedAt: Date.now()
     };
+    
     if (!data.nome || !data.categoria) return alert("Dati obbligatori mancanti");
+    
     ui.showLoader();
     try {
-        const prodRef = window.fb.collection(window.fb.db, "bars", currentPath.barId, "prodotti");
-        if (id) {
-            await window.fb.setDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id), data, { merge: true });
-        } else {
-            data.createdAt = Date.now();
-            await window.fb.addDoc(prodRef, data);
-        }
+        await dbService.saveProduct(currentPath.barId, id, data);
         productModal.classList.add('hidden');
         ui.showToast("Salvato!");
         currentPath.category = data.categoria;
         renderProductList();
-    } catch (e) { alert("Errore"); } finally { ui.hideLoader(); }
+    } catch (e) { alert("Errore nel salvataggio"); } finally { ui.hideLoader(); }
 };
 
 closeModalBtn.onclick = () => productModal.classList.add('hidden');
@@ -242,6 +231,7 @@ function updateBreadcrumbs() {
     base.innerHTML = isSuperAdmin ? `${getIconHTML('admin')} Superadmin` : `${getIconHTML('back')} Home`;
     base.onclick = isSuperAdmin ? renderBarList : renderAdminChoice;
     breadcrumbs.appendChild(base);
+    
     if(currentPath.barId) {
         breadcrumbs.append(" > ");
         const barSpan = document.createElement('span');
@@ -259,20 +249,20 @@ function updateBreadcrumbs() {
 }
 
 async function deleteProduct(id) {
-    if(confirm("Eliminare?")) {
+    if(confirm("Eliminare prodotto?")) {
         ui.showLoader();
         try {
-            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "bars", currentPath.barId, "prodotti", id));
+            await dbService.deleteProduct(currentPath.barId, id);
             renderProductList();
         } catch(e) { console.error(e); } finally { ui.hideLoader(); }
     }
 }
 
 async function deleteBar(id) {
-    if(confirm("Eliminare bar?")) {
+    if(confirm("Eliminare definitivamente questo bar e i suoi dati?")) {
         ui.showLoader();
         try {
-            await window.fb.deleteDoc(window.fb.doc(window.fb.db, "users", id));
+            await dbService.deleteBar(id);
             renderBarList();
         } catch(e) { console.error(e); } finally { ui.hideLoader(); }
     }
