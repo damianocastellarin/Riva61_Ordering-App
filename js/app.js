@@ -1,5 +1,5 @@
 import { state, resetState } from "./state.js";
-import { renderStep, ui } from "./ui.js"; // ui.js ora potrebbe contenere la funzione initButtons
+import { renderStep, ui } from "./ui.js";
 import { storageService } from "./services/storage.js";
 import { dbService } from "./services/db.js";
 import { navigator } from "./order/navigator.js";
@@ -13,20 +13,34 @@ const messaggioFinale = document.getElementById("messaggioFinale");
 ui.initAdminButtons(); 
 
 window.addEventListener('auth-success', async (e) => {
-    const prodotti = await dbService.getProducts(e.detail.barId);
-    CATEGORIE_DINAMICHE = orderLogic.prepareCategories(prodotti);
-    
-    const backup = storageService.loadOrder();
-    if (backup && CATEGORIE_DINAMICHE.length > 0) {
-        Object.assign(state, backup);
-        if (state.stepIndex >= CATEGORIE_DINAMICHE.length) mostraRiepilogo();
-        else { navigator.goTo('STEP'); renderStep(state, CATEGORIE_DINAMICHE); }
+    try {
+        const prodotti = await dbService.getProducts(e.detail.barId);
+        CATEGORIE_DINAMICHE = orderLogic.prepareCategories(prodotti);
+        
+        const backup = storageService.loadOrder();
+        if (backup && CATEGORIE_DINAMICHE.length > 0) {
+            Object.assign(state, backup);
+            if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+                mostraRiepilogo();
+            } else {
+                navigator.goTo('STEP');
+                renderStep(state, CATEGORIE_DINAMICHE);
+            }
+        } else {
+            navigator.goTo('HOME');
+        }
+    } catch (error) {
+        console.error("Errore inizializzazione app:", error);
     }
 });
 
 document.getElementById("startBtn").onclick = () => {
-    if (CATEGORIE_DINAMICHE.length === 0) return;
+    if (CATEGORIE_DINAMICHE.length === 0) {
+        alert("Caricamento prodotti in corso... attendi un istante.");
+        return;
+    }
     resetState();
+    state.stepIndex = 0;
     navigator.goTo('STEP');
     renderStep(state, CATEGORIE_DINAMICHE);
 };
@@ -53,10 +67,13 @@ const mostraRiepilogo = () => {
 document.getElementById("whatsappBtn").onclick = () => orderActions.shareToWhatsApp(messaggioFinale.value);
 document.getElementById("copiaBtn").onclick = (e) => orderActions.copyToClipboard(messaggioFinale.value, e.currentTarget);
 document.getElementById("nuovoOrdineBtn").onclick = () => {
-    if (!confirm("Nuovo ordine?")) return;
-    resetState(); storageService.clearOrder(); navigator.goTo('HOME');
+    if (!confirm("Vuoi iniziare un nuovo ordine?")) return;
+    resetState(); 
+    storageService.clearOrder(); 
+    navigator.goTo('HOME');
 };
 document.getElementById("riepilogoIndietroBtn").onclick = () => {
     state.stepIndex = CATEGORIE_DINAMICHE.length - 1;
-    navigator.goTo('STEP'); renderStep(state, CATEGORIE_DINAMICHE);
+    navigator.goTo('STEP'); 
+    renderStep(state, CATEGORIE_DINAMICHE);
 };

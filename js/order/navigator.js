@@ -8,15 +8,19 @@ const progressContainer = document.getElementById("progressContainer");
 
 export const navigator = {
     /**
-     * show a specific view and hide others
+     * mostra una vista specifica e nasconde le altre
      * @param {string} viewName - 'HOME', 'STEP' o 'SUMMARY'
      */
     goTo(viewName) {
-        Object.values(views).forEach(el => el?.classList.add("hidden"));
+        Object.keys(views).forEach(key => {
+            if (views[key]) views[key].classList.add("hidden");
+        });
         
         const target = views[viewName];
         if (target) {
             target.classList.remove("hidden");
+        } else {
+            console.error(`Vista "${viewName}" non trovata nel DOM.`);
         }
 
         if (progressContainer) {
