@@ -2,10 +2,10 @@ import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
 import { dbService } from './services/db.js';
 import { productModalManager } from './admin/productModal.js';
+import { uiComponents } from './admin/uiComponents.js';
 
 const adminView = document.getElementById('admin-view');
 const breadcrumbs = document.getElementById('breadcrumbs');
-
 let currentPath = { barId: null, barName: '', category: '' };
 let isSuperAdmin = false;
 
@@ -21,7 +21,6 @@ if (saveProductBtn) saveProductBtn.innerHTML = `${getIconHTML('save')} Salva`;
 
 window.renderBarList = renderBarList;
 window.renderAdminChoice = renderAdminChoice;
-window.renderCategoryList = renderCategoryList;
 
 window.addEventListener('superadmin-success', () => { isSuperAdmin = true; renderBarList(); });
 window.addEventListener('admin-bar-choice', (e) => {
@@ -34,27 +33,14 @@ window.addEventListener('admin-bar-choice', (e) => {
 function renderAdminChoice() {
     updateBreadcrumbs();
     adminView.innerHTML = "";
-    const container = document.createElement('div');
-    container.style.cssText = "display:flex; flex-direction:column; gap:20px; padding:20px;";
-
-    const btnOrders = document.createElement('button');
-    btnOrders.className = "btn-primary";
-    btnOrders.style.cssText = "height:80px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px;";
-    btnOrders.innerHTML = `${getIconHTML('save')} FAI ORDINI`;
-    btnOrders.onclick = () => {
-        document.getElementById('admin-content').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
-        window.dispatchEvent(new CustomEvent('auth-success', { detail: { barId: currentPath.barId } }));
-    };
-
-    const btnEdit = document.createElement('button');
-    btnEdit.className = "btn-secondary";
-    btnEdit.style.cssText = "height:80px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px;";
-    btnEdit.innerHTML = `${getIconHTML('edit')} MODIFICA PRODOTTI`;
-    btnEdit.onclick = () => renderCategoryList();
-
-    container.append(btnOrders, btnEdit);
-    adminView.appendChild(container);
+    adminView.appendChild(uiComponents.createAdminChoiceMenu(
+        () => {
+            document.getElementById('admin-content').classList.add('hidden');
+            document.getElementById('app-content').classList.remove('hidden');
+            window.dispatchEvent(new CustomEvent('auth-success', { detail: { barId: currentPath.barId } }));
+        },
+        () => renderCategoryList()
+    ));
 }
 
 async function renderBarList() {
@@ -65,30 +51,22 @@ async function renderBarList() {
 
     try {
         const bars = await dbService.getBars();
-        const list = adminView.querySelector('.list-container');
-        list.textContent = "";
+        const listContainer = adminView.querySelector('.list-container');
+        listContainer.innerHTML = "";
         
         bars.forEach(bar => {
-            const item = document.createElement('div');
-            item.className = 'admin-item';
-            item.innerHTML = `<span>${bar.barName || bar.id}</span>`;
-            
-            const delBtn = document.createElement('button');
-            delBtn.className = 'delete-btn';
-            delBtn.innerHTML = getIconHTML('delete');
-            delBtn.onclick = (e) => { e.stopPropagation(); deleteBar(bar.id); };
-
-            item.append(delBtn);
-            item.onclick = (e) => {
-                if(!e.target.closest('.delete-btn')) {
+            const item = uiComponents.createListItem(
+                `<span>${bar.barName || bar.id}</span>`,
+                () => {
                     currentPath.barId = bar.id;
                     currentPath.barName = bar.barName || "Bar";
                     renderCategoryList();
-                }
-            };
-            list.appendChild(item);
+                },
+                () => deleteBar(bar.id)
+            );
+            listContainer.appendChild(item);
         });
-    } catch (e) { console.error(e); adminView.innerHTML = "Errore."; }
+    } catch (e) { adminView.innerHTML = "Errore caricamento bar."; }
 }
 
 async function renderCategoryList() {
@@ -96,26 +74,23 @@ async function renderCategoryList() {
     updateBreadcrumbs();
     adminView.innerHTML = "";
 
-    const addBtn = document.createElement('button');
-    addBtn.className = "btn-secondary";
-    addBtn.style.marginBottom = "10px";
-    addBtn.innerHTML = `${getIconHTML('add')} Nuova Categoria`;
-    addBtn.onclick = () => productModalManager.open(currentPath.barId);
+    adminView.appendChild(uiComponents.createAddButton("Nuova Categoria", () => productModalManager.open(currentPath.barId)));
     
-    const list = document.createElement('div');
-    list.className = "list-container";
-    adminView.append(addBtn, list);
+    const listContainer = document.createElement('div');
+    listContainer.className = "list-container";
+    adminView.appendChild(listContainer);
 
     try {
         const products = await dbService.getProducts(currentPath.barId);
         const categorie = [...new Set(products.map(p => p.categoria))].sort();
+        
         categorie.forEach(cat => {
             if(!cat) return;
-            const item = document.createElement('div');
-            item.className = 'admin-item';
-            item.textContent = cat;
-            item.onclick = () => { currentPath.category = cat; renderProductList(); };
-            list.appendChild(item);
+            const item = uiComponents.createListItem(
+                `<span>${cat}</span>`,
+                () => { currentPath.category = cat; renderProductList(); }
+            );
+            listContainer.appendChild(item);
         });
     } catch (e) { console.error(e); }
 }
@@ -124,56 +99,44 @@ async function renderProductList() {
     updateBreadcrumbs();
     adminView.innerHTML = "";
     
-    const addBtn = document.createElement('button');
-    addBtn.className = "btn-secondary";
-    addBtn.style.marginBottom = "10px";
-    addBtn.innerHTML = `${getIconHTML('add')} Nuovo Prodotto`;
-    addBtn.onclick = () => productModalManager.open(currentPath.barId, currentPath.category);
+    adminView.appendChild(uiComponents.createAddButton("Nuovo Prodotto", () => productModalManager.open(currentPath.barId, currentPath.category)));
 
-    const list = document.createElement('div');
-    list.className = "list-container";
-    adminView.append(addBtn, list);
+    const listContainer = document.createElement('div');
+    listContainer.className = "list-container";
+    adminView.appendChild(listContainer);
 
     try {
         const prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
         prodotti.forEach(p => {
-            const item = document.createElement('div');
-            item.className = 'admin-item';
-            item.innerHTML = `
-                <div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>
-                <div class="actions">
-                    <button class="edit-btn">${getIconHTML('edit')}</button>
-                    <button class="delete-btn">${getIconHTML('delete')}</button>
-                </div>`;
-            
-            item.querySelector('.edit-btn').onclick = () => productModalManager.open(currentPath.barId, currentPath.category, p);
-            item.querySelector('.delete-btn').onclick = () => deleteProduct(p.id);
-            list.appendChild(item);
+            const item = uiComponents.createListItem(
+                `<div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>`,
+                null,
+                () => deleteProduct(p.id),
+                () => productModalManager.open(currentPath.barId, currentPath.category, p)
+            );
+            listContainer.appendChild(item);
         });
     } catch (e) { console.error(e); }
 }
 
 function updateBreadcrumbs() {
     breadcrumbs.innerHTML = "";
-    const base = document.createElement('span');
-    base.style.cursor = "pointer";
-    base.innerHTML = isSuperAdmin ? `${getIconHTML('admin')} Superadmin` : `${getIconHTML('back')} Home`;
-    base.onclick = isSuperAdmin ? renderBarList : renderAdminChoice;
-    breadcrumbs.appendChild(base);
+    const addStep = (label, action, isBold = false) => {
+        const span = document.createElement(isBold ? 'b' : 'span');
+        span.textContent = label;
+        if(action) { span.style.cursor = "pointer"; span.onclick = action; }
+        breadcrumbs.appendChild(span);
+    };
+
+    addStep(isSuperAdmin ? "Superadmin" : "Home", isSuperAdmin ? renderBarList : renderAdminChoice);
     
     if(currentPath.barId) {
         breadcrumbs.append(" > ");
-        const barSpan = document.createElement('span');
-        barSpan.textContent = currentPath.barName;
-        barSpan.style.cursor = "pointer";
-        barSpan.onclick = renderCategoryList;
-        breadcrumbs.appendChild(barSpan);
+        addStep(currentPath.barName, renderCategoryList);
     }
     if(currentPath.category) {
         breadcrumbs.append(" > ");
-        const catB = document.createElement('b');
-        catB.textContent = currentPath.category;
-        breadcrumbs.appendChild(catB);
+        addStep(currentPath.category, null, true);
     }
 }
 
@@ -183,7 +146,7 @@ async function deleteProduct(id) {
         try {
             await dbService.deleteProduct(currentPath.barId, id);
             renderProductList();
-        } catch(e) { console.error(e); } finally { ui.hideLoader(); }
+        } finally { ui.hideLoader(); }
     }
 }
 
@@ -193,6 +156,6 @@ async function deleteBar(id) {
         try {
             await dbService.deleteBar(id);
             renderBarList();
-        } catch(e) { console.error(e); } finally { ui.hideLoader(); }
+        } finally { ui.hideLoader(); }
     }
 }
