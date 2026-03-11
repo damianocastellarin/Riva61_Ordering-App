@@ -1,122 +1,62 @@
 import { state, resetState } from "./state.js";
-import { renderStep } from "./ui.js";
-import { generaMessaggio } from "./orderBuilder.js";
-import { getIconHTML } from "./icons.js";
-import { dbService } from "./services/db.js";
+import { renderStep, ui } from "./ui.js"; // ui.js ora potrebbe contenere la funzione initButtons
 import { storageService } from "./services/storage.js";
+import { dbService } from "./services/db.js";
+import { navigator } from "./order/navigator.js";
+import { orderActions } from "./order/orderActions.js";
+import { orderLogic } from "./order/orderLogic.js";
+import { generaMessaggio } from "./orderBuilder.js";
 
 let CATEGORIE_DINAMICHE = [];
-
-const home = document.getElementById("home");
-const stepDiv = document.getElementById("step");
-const riepilogoDiv = document.getElementById("riepilogo");
 const messaggioFinale = document.getElementById("messaggioFinale");
-const progressContainer = document.getElementById("progressContainer");
 
-document.getElementById("indietroBtn").innerHTML = `${getIconHTML('back')} Indietro`;
-document.getElementById("avantiBtn").innerHTML = `Avanti ${getIconHTML('save')}`;
-document.getElementById("riepilogoIndietroBtn").innerHTML = `${getIconHTML('back')} Modifica`;
-document.getElementById("logoutBtn").innerHTML = `${getIconHTML('logout')} Esci dall'account`;
-document.getElementById("startBtn").innerHTML = `${getIconHTML('add')} Inizia Nuovo Ordine`;
+ui.initAdminButtons(); 
 
-window.addEventListener('auth-success', (e) => {
-    const barId = e.detail.barId;
-    if (barId) caricaDatiDalDatabase(barId);
-});
-
-async function caricaDatiDalDatabase(barId) {
-    try {
-        const prodottiScaricati = await dbService.getProducts(barId);
-        if (prodottiScaricati.length === 0) return;
-
-        window.mappaProdottiCompleta = prodottiScaricati;
-        const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
-        
-        CATEGORIE_DINAMICHE = nomiCategorie.map(nomeCat => ({
-            nome: nomeCat,
-            prodotti: prodottiScaricati.filter(p => p.categoria === nomeCat).map(p => p.nome)
-        }));
-
-        ripristinaDaLocale();
-    } catch (error) { 
-        console.error("Errore nel caricamento dati app:", error); 
-    }
-}
-
-function ripristinaDaLocale() {
+window.addEventListener('auth-success', async (e) => {
+    const prodotti = await dbService.getProducts(e.detail.barId);
+    CATEGORIE_DINAMICHE = orderLogic.prepareCategories(prodotti);
+    
     const backup = storageService.loadOrder();
     if (backup && CATEGORIE_DINAMICHE.length > 0) {
-        state.stepIndex = backup.stepIndex;
-        state.risposte = backup.risposte;
-        home.classList.add("hidden");
-        
-        if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
-            mostraRiepilogo();
-        } else {
-            stepDiv.classList.remove("hidden");
-            renderStep(state, CATEGORIE_DINAMICHE);
-        }
+        Object.assign(state, backup);
+        if (state.stepIndex >= CATEGORIE_DINAMICHE.length) mostraRiepilogo();
+        else { navigator.goTo('STEP'); renderStep(state, CATEGORIE_DINAMICHE); }
     }
-}
-
-document.getElementById("startBtn").addEventListener("click", () => {
-    if (CATEGORIE_DINAMICHE.length === 0) return alert("Caricamento...");
-    resetState();
-    home.classList.add("hidden");
-    stepDiv.classList.remove("hidden");
-    state.stepIndex = 0;
-    renderStep(state, CATEGORIE_DINAMICHE);
 });
 
-document.getElementById("avantiBtn").addEventListener("click", () => {
+document.getElementById("startBtn").onclick = () => {
+    if (CATEGORIE_DINAMICHE.length === 0) return;
+    resetState();
+    navigator.goTo('STEP');
+    renderStep(state, CATEGORIE_DINAMICHE);
+};
+
+document.getElementById("avantiBtn").onclick = () => {
     state.stepIndex++;
     storageService.saveOrder(state);
     if (state.stepIndex >= CATEGORIE_DINAMICHE.length) mostraRiepilogo();
     else renderStep(state, CATEGORIE_DINAMICHE);
-});
+};
 
-document.getElementById("indietroBtn").addEventListener("click", () => {
-    if (state.stepIndex > 0) {
-        state.stepIndex--;
-        renderStep(state, CATEGORIE_DINAMICHE);
-        storageService.saveOrder(state);
-    }
-});
-
-function mostraRiepilogo() {
-    messaggioFinale.value = generaMessaggio(state.risposte);
-    stepDiv.classList.add("hidden");
-    riepilogoDiv.classList.remove("hidden");
-    if (progressContainer) progressContainer.classList.add("hidden");
-}
-
-document.getElementById("whatsappBtn").addEventListener("click", () => {
-    const testo = encodeURIComponent(messaggioFinale.value);
-    window.open(`https://wa.me/?text=${testo}`, "_blank");
-});
-
-document.getElementById("copiaBtn").addEventListener("click", async () => {
-    try {
-        await navigator.clipboard.writeText(messaggioFinale.value);
-        const btn = document.getElementById("copiaBtn");
-        const originalHTML = btn.innerHTML;
-        btn.textContent = "Copiato!";
-        setTimeout(() => { btn.innerHTML = originalHTML; }, 2000);
-    } catch (err) { console.error(err); }
-});
-
-document.getElementById("nuovoOrdineBtn").addEventListener("click", () => {
-    if (confirm("Vuoi iniziare un nuovo ordine?")) {
-        resetState();
-        storageService.clearOrder();
-        riepilogoDiv.classList.add("hidden");
-        home.classList.remove("hidden");
-    }
-});
-
-document.getElementById("riepilogoIndietroBtn").addEventListener("click", () => {
-    riepilogoDiv.classList.add("hidden");
-    stepDiv.classList.remove("hidden");
-    state.stepIndex = CATEGORIE_DINAMICHE.length - 1;
+document.getElementById("indietroBtn").onclick = () => {
+    if (state.stepIndex <= 0) return;
+    state.stepIndex--;
+    storageService.saveOrder(state);
     renderStep(state, CATEGORIE_DINAMICHE);
-});
+};
+
+const mostraRiepilogo = () => {
+    messaggioFinale.value = generaMessaggio(state.risposte);
+    navigator.goTo('SUMMARY');
+};
+
+document.getElementById("whatsappBtn").onclick = () => orderActions.shareToWhatsApp(messaggioFinale.value);
+document.getElementById("copiaBtn").onclick = (e) => orderActions.copyToClipboard(messaggioFinale.value, e.currentTarget);
+document.getElementById("nuovoOrdineBtn").onclick = () => {
+    if (!confirm("Nuovo ordine?")) return;
+    resetState(); storageService.clearOrder(); navigator.goTo('HOME');
+};
+document.getElementById("riepilogoIndietroBtn").onclick = () => {
+    state.stepIndex = CATEGORIE_DINAMICHE.length - 1;
+    navigator.goTo('STEP'); renderStep(state, CATEGORIE_DINAMICHE);
+};
