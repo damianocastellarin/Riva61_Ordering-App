@@ -3,6 +3,7 @@ import { renderStep } from "./ui.js";
 import { generaMessaggio } from "./orderBuilder.js";
 import { getIconHTML } from "./icons.js";
 import { dbService } from "./services/db.js";
+import { storageService } from "./services/storage.js";
 
 let CATEGORIE_DINAMICHE = [];
 
@@ -26,7 +27,6 @@ window.addEventListener('auth-success', (e) => {
 async function caricaDatiDalDatabase(barId) {
     try {
         const prodottiScaricati = await dbService.getProducts(barId);
-
         if (prodottiScaricati.length === 0) return;
 
         window.mappaProdottiCompleta = prodottiScaricati;
@@ -44,12 +44,12 @@ async function caricaDatiDalDatabase(barId) {
 }
 
 function ripristinaDaLocale() {
-    const datiSalvati = sessionStorage.getItem("ordine_bar_salvato");
-    if (datiSalvati && CATEGORIE_DINAMICHE.length > 0) {
-        const backup = JSON.parse(datiSalvati);
+    const backup = storageService.loadOrder();
+    if (backup && CATEGORIE_DINAMICHE.length > 0) {
         state.stepIndex = backup.stepIndex;
         state.risposte = backup.risposte;
         home.classList.add("hidden");
+        
         if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
             mostraRiepilogo();
         } else {
@@ -70,7 +70,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
 
 document.getElementById("avantiBtn").addEventListener("click", () => {
     state.stepIndex++;
-    sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+    storageService.saveOrder(state);
     if (state.stepIndex >= CATEGORIE_DINAMICHE.length) mostraRiepilogo();
     else renderStep(state, CATEGORIE_DINAMICHE);
 });
@@ -79,7 +79,7 @@ document.getElementById("indietroBtn").addEventListener("click", () => {
     if (state.stepIndex > 0) {
         state.stepIndex--;
         renderStep(state, CATEGORIE_DINAMICHE);
-        sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
+        storageService.saveOrder(state);
     }
 });
 
@@ -108,7 +108,7 @@ document.getElementById("copiaBtn").addEventListener("click", async () => {
 document.getElementById("nuovoOrdineBtn").addEventListener("click", () => {
     if (confirm("Vuoi iniziare un nuovo ordine?")) {
         resetState();
-        sessionStorage.removeItem("ordine_bar_salvato");
+        storageService.clearOrder();
         riepilogoDiv.classList.add("hidden");
         home.classList.remove("hidden");
     }
