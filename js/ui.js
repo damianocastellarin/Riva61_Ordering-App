@@ -34,8 +34,8 @@ export const ui = {
             "indietroBtn": `${getIconHTML('back')} Indietro`,
             "avantiBtn": `Avanti ${getIconHTML('save')}`,
             "riepilogoIndietroBtn": `${getIconHTML('back')} Modifica`,
-            "logoutBtn": `${getIconHTML('logout')} Esci dall'account`,
-            "startBtn": `${getIconHTML('add')} Inizia Nuovo Ordine`
+            "logoutBtn": `${getIconHTML('logout')} Esci`,
+            "startBtn": `Inizia Nuovo Ordine`
         };
 
         Object.entries(btns).forEach(([id, html]) => {
@@ -47,84 +47,55 @@ export const ui = {
 
 export function renderStep(state, categorie) {
     if (!categorie || categorie.length === 0) return;
-    if (state.stepIndex < 0 || state.stepIndex >= categorie.length) return;
-
     const categoriaCorrente = categorie[state.stepIndex];
+    
+    const container = document.getElementById("prodottiContainer");
+    const catNome = document.getElementById("categoriaNome");
     const avantiBtn = document.getElementById("avantiBtn");
-    const progressContainer = document.getElementById("progressContainer");
+    const indietroBtn = document.getElementById("indietroBtn");
     const progressBar = document.getElementById("progressBar");
 
-    if (progressContainer && progressBar) {
-        progressContainer.classList.remove("hidden");
+    if (catNome) catNome.textContent = categoriaCorrente.nome;
+    if (indietroBtn) indietroBtn.disabled = state.stepIndex === 0;
+    if (avantiBtn) {
+        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
+            `Crea Messaggio ${getIconHTML('save')}` : 
+            `Avanti ${getIconHTML('next')}`;
+    }
+
+    if (progressBar) {
         const progress = ((state.stepIndex + 1) / categorie.length) * 100;
         progressBar.style.width = `${progress}%`;
     }
 
-    document.getElementById("categoriaNome").textContent = categoriaCorrente.nome;
-    const backBtn = document.getElementById("indietroBtn");
-    if(backBtn) backBtn.disabled = state.stepIndex === 0;
-    
-    if(avantiBtn) avantiBtn.textContent = state.stepIndex === categorie.length - 1 ? "Crea Messaggio" : "Avanti";
-
-    const container = document.getElementById("prodottiContainer");
     container.innerHTML = "";
-    const fragment = document.createDocumentFragment();
-
     categoriaCorrente.prodotti.forEach(nomeProdotto => {
         const div = document.createElement("div");
-        div.classList.add("input-row");
+        div.className = `input-row ${state.risposte[nomeProdotto] > 0 ? 'filled' : ''}`;
         
-        const savedValue = parseInt(state.risposte[nomeProdotto], 10) || 0;
-        if (savedValue > 0) div.classList.add("filled");
+        div.innerHTML = `
+            <label>${nomeProdotto}</label>
+            <div class="qty-controls">
+                <button class="btn-qty minus">-</button>
+                <input type="number" inputmode="numeric" value="${state.risposte[nomeProdotto] || ''}" placeholder="0">
+                <button class="btn-qty plus">+</button>
+            </div>
+        `;
 
-        const label = document.createElement("label");
-        label.textContent = nomeProdotto;
-
-        const controls = document.createElement("div");
-        controls.classList.add("qty-controls");
-
-        const input = document.createElement("input");
-        input.type = "number";
-        input.inputMode = "numeric";
-        input.value = savedValue > 0 ? savedValue : "";
-        
-        const updateValue = (newValue) => {
-            let v = parseInt(newValue, 10);
-            if (isNaN(v) || v <= 0) v = 0;
-            if (v > 99) v = 99;
+        const input = div.querySelector('input');
+        const update = (val) => {
+            let v = parseInt(val, 10) || 0;
+            v = Math.max(0, Math.min(99, v));
             state.risposte[nomeProdotto] = v;
             input.value = v > 0 ? v : "";
-            if (v > 0) div.classList.add("filled");
-            else div.classList.remove("filled");
+            div.classList.toggle('filled', v > 0);
             sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
         };
 
-        const btnMinus = document.createElement("button");
-        btnMinus.textContent = "-";
-        btnMinus.classList.add("btn-qty");
-        btnMinus.onpointerdown = (e) => {
-            e.preventDefault();
-            let currentV = parseInt(state.risposte[nomeProdotto] || 0, 10);
-            if (currentV > 0) updateValue(currentV - 1);
-        };
+        div.querySelector('.minus').onclick = () => update((state.risposte[nomeProdotto] || 0) - 1);
+        div.querySelector('.plus').onclick = () => update((state.risposte[nomeProdotto] || 0) + 1);
+        input.oninput = (e) => update(e.target.value);
 
-        const btnPlus = document.createElement("button");
-        btnPlus.textContent = "+";
-        btnPlus.classList.add("btn-qty");
-        btnPlus.onpointerdown = (e) => {
-            e.preventDefault();
-            let currentV = parseInt(state.risposte[nomeProdotto] || 0, 10);
-            updateValue(currentV + 1);
-        };
-
-        input.addEventListener("input", (e) => updateValue(e.target.value));
-        controls.appendChild(btnMinus);
-        controls.appendChild(input);
-        controls.appendChild(btnPlus);
-        div.appendChild(label);
-        div.appendChild(controls);
-        fragment.appendChild(div);
+        container.appendChild(div);
     });
-
-    container.appendChild(fragment);
 }

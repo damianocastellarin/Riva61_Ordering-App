@@ -8,19 +8,18 @@ import { orderLogic } from "./order/orderLogic.js";
 import { generaMessaggio } from "./orderBuilder.js";
 
 let CATEGORIE_DINAMICHE = [];
+let PRODOTTI_DATA = [];
 const messaggioFinale = document.getElementById("messaggioFinale");
 
 ui.initAdminButtons(); 
 
 window.addEventListener('auth-success', async (e) => {
     try {
+        ui.showLoader();
         const prodotti = await dbService.getProducts(e.detail.barId);
+        PRODOTTI_DATA = prodotti; 
         CATEGORIE_DINAMICHE = orderLogic.prepareCategories(prodotti);
         
-        if (CATEGORIE_DINAMICHE.length === 0) {
-            console.warn("Nessun prodotto trovato per questo bar.");
-        }
-
         const backup = storageService.loadOrder();
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
@@ -34,13 +33,15 @@ window.addEventListener('auth-success', async (e) => {
             navigator.goTo('HOME');
         }
     } catch (error) {
-        console.error("Errore nel caricamento iniziale:", error);
+        console.error("Errore inizializzazione:", error);
+    } finally {
+        ui.hideLoader();
     }
 });
 
 document.getElementById("startBtn").onclick = () => {
     if (CATEGORIE_DINAMICHE.length === 0) {
-        alert("Attenzione: Lista prodotti vuota o ancora in caricamento.");
+        alert("Caricamento prodotti in corso...");
         return;
     }
     resetState();
@@ -52,8 +53,11 @@ document.getElementById("startBtn").onclick = () => {
 document.getElementById("avantiBtn").onclick = () => {
     state.stepIndex++;
     storageService.saveOrder(state);
-    if (state.stepIndex >= CATEGORIE_DINAMICHE.length) mostraRiepilogo();
-    else renderStep(state, CATEGORIE_DINAMICHE);
+    if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+        mostraRiepilogo();
+    } else {
+        renderStep(state, CATEGORIE_DINAMICHE);
+    }
 };
 
 document.getElementById("indietroBtn").onclick = () => {
@@ -64,7 +68,7 @@ document.getElementById("indietroBtn").onclick = () => {
 };
 
 const mostraRiepilogo = () => {
-    messaggioFinale.value = generaMessaggio(state.risposte);
+    messaggioFinale.value = generaMessaggio(state.risposte, PRODOTTI_DATA);
     navigator.goTo('SUMMARY');
 };
 
@@ -72,7 +76,7 @@ document.getElementById("whatsappBtn").onclick = () => orderActions.shareToWhats
 document.getElementById("copiaBtn").onclick = (e) => orderActions.copyToClipboard(messaggioFinale.value, e.currentTarget);
 
 document.getElementById("nuovoOrdineBtn").onclick = () => {
-    if (!confirm("Vuoi iniziare un nuovo ordine?")) return;
+    if (!confirm("Vuoi iniziare un nuovo ordine? Tutti i dati attuali verranno persi.")) return;
     resetState(); 
     storageService.clearOrder(); 
     navigator.goTo('HOME');
