@@ -2,6 +2,7 @@ import { state, resetState } from "./state.js";
 import { renderStep } from "./ui.js";
 import { generaMessaggio } from "./orderBuilder.js";
 import { getIconHTML } from "./icons.js";
+import { dbService } from "./services/db.js";
 
 let CATEGORIE_DINAMICHE = [];
 
@@ -24,12 +25,7 @@ window.addEventListener('auth-success', (e) => {
 
 async function caricaDatiDalDatabase(barId) {
     try {
-        const prodRef = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
-        const q = window.fb.query(prodRef, window.fb.orderBy("createdAt", "asc"));
-        const querySnapshot = await window.fb.getDocs(q);
-        
-        const prodottiScaricati = [];
-        querySnapshot.forEach((doc) => prodottiScaricati.push({ id: doc.id, ...doc.data() }));
+        const prodottiScaricati = await dbService.getProducts(barId);
 
         if (prodottiScaricati.length === 0) return;
 
@@ -42,7 +38,9 @@ async function caricaDatiDalDatabase(barId) {
         }));
 
         ripristinaDaLocale();
-    } catch (error) { console.error(error); }
+    } catch (error) { 
+        console.error("Errore nel caricamento dati app:", error); 
+    }
 }
 
 function ripristinaDaLocale() {

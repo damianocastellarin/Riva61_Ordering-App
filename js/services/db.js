@@ -13,9 +13,14 @@ export const dbService = {
     async getProducts(barId, category = null) {
         if (!barId) return [];
         const ref = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
-        let q = category 
-            ? window.fb.query(ref, window.fb.where("categoria", "==", category))
-            : ref;
+        
+        let q;
+        if (category) {
+            q = window.fb.query(ref, window.fb.where("categoria", "==", category));
+        } else {
+            q = window.fb.query(ref, window.fb.orderBy("createdAt", "asc"));
+        }
+        
         const snap = await window.fb.getDocs(q);
         return mapDocs(snap);
     },
