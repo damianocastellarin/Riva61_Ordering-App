@@ -84,8 +84,17 @@ export function renderStep(state, categorie) {
 
         const input = div.querySelector('input');
         const update = (val) => {
-            let v = parseInt(val, 10) || 0;
-            v = Math.max(0, Math.min(99, v));
+            let v = parseInt(val, 10);
+            
+            if (isNaN(v)) v = 0;
+
+            if (v > 99) {
+                input.value = state.risposte[nomeProdotto] > 0 ? state.risposte[nomeProdotto] : "";
+                return;
+            }
+
+            if (v < 0) v = 0;
+
             state.risposte[nomeProdotto] = v;
             input.value = v > 0 ? v : "";
             div.classList.toggle('filled', v > 0);
@@ -94,7 +103,17 @@ export function renderStep(state, categorie) {
 
         div.querySelector('.minus').onclick = () => update((state.risposte[nomeProdotto] || 0) - 1);
         div.querySelector('.plus').onclick = () => update((state.risposte[nomeProdotto] || 0) + 1);
-        input.oninput = (e) => update(e.target.value);
+        
+        input.oninput = (e) => {
+            let val = e.target.value;
+            
+            if (val.length > 2) {
+                val = val.slice(0, 2);
+                e.target.value = val;
+            }
+            
+            update(val);
+        };
 
         container.appendChild(div);
     });
