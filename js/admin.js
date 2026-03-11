@@ -1,29 +1,27 @@
 import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
 import { dbService } from './services/db.js';
+import { productModalManager } from './admin/productModal.js';
 
 const adminView = document.getElementById('admin-view');
 const breadcrumbs = document.getElementById('breadcrumbs');
-const productModal = document.getElementById('productModal');
-const modalTitle = document.getElementById('modalTitle');
-const modalProductId = document.getElementById('modalProductId');
-const modalProdNome = document.getElementById('modalProdNome');
-const modalProdCat = document.getElementById('modalProdCat');
-const modalProdFornitore = document.getElementById('modalProdFornitore');
-const closeModalBtn = document.getElementById('closeModalBtn');
-const saveProductBtn = document.getElementById('saveProductBtn');
 
 let currentPath = { barId: null, barName: '', category: '' };
 let isSuperAdmin = false;
 
+productModalManager.init((newCat) => {
+    currentPath.category = newCat;
+    renderProductList();
+});
+
+const closeModalBtn = document.getElementById('closeModalBtn');
+const saveProductBtn = document.getElementById('saveProductBtn');
 if (closeModalBtn) closeModalBtn.innerHTML = `${getIconHTML('cancel')} Annulla`;
 if (saveProductBtn) saveProductBtn.innerHTML = `${getIconHTML('save')} Salva`;
 
 window.renderBarList = renderBarList;
 window.renderAdminChoice = renderAdminChoice;
 window.renderCategoryList = renderCategoryList;
-window.openModal = openModal;
-window.deleteProduct = deleteProduct;
 
 window.addEventListener('superadmin-success', () => { isSuperAdmin = true; renderBarList(); });
 window.addEventListener('admin-bar-choice', (e) => {
@@ -73,16 +71,14 @@ async function renderBarList() {
         bars.forEach(bar => {
             const item = document.createElement('div');
             item.className = 'admin-item';
-            
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = bar.barName || bar.id;
+            item.innerHTML = `<span>${bar.barName || bar.id}</span>`;
             
             const delBtn = document.createElement('button');
             delBtn.className = 'delete-btn';
             delBtn.innerHTML = getIconHTML('delete');
             delBtn.onclick = (e) => { e.stopPropagation(); deleteBar(bar.id); };
 
-            item.append(nameSpan, delBtn);
+            item.append(delBtn);
             item.onclick = (e) => {
                 if(!e.target.closest('.delete-btn')) {
                     currentPath.barId = bar.id;
@@ -92,7 +88,7 @@ async function renderBarList() {
             };
             list.appendChild(item);
         });
-    } catch (e) { console.error(e); adminView.innerHTML = "Errore nel caricamento."; }
+    } catch (e) { console.error(e); adminView.innerHTML = "Errore."; }
 }
 
 async function renderCategoryList() {
@@ -104,7 +100,7 @@ async function renderCategoryList() {
     addBtn.className = "btn-secondary";
     addBtn.style.marginBottom = "10px";
     addBtn.innerHTML = `${getIconHTML('add')} Nuova Categoria`;
-    addBtn.onclick = () => openModal();
+    addBtn.onclick = () => productModalManager.open(currentPath.barId);
     
     const list = document.createElement('div');
     list.className = "list-container";
@@ -132,7 +128,7 @@ async function renderProductList() {
     addBtn.className = "btn-secondary";
     addBtn.style.marginBottom = "10px";
     addBtn.innerHTML = `${getIconHTML('add')} Nuovo Prodotto`;
-    addBtn.onclick = () => openModal();
+    addBtn.onclick = () => productModalManager.open(currentPath.barId, currentPath.category);
 
     const list = document.createElement('div');
     list.className = "list-container";
@@ -145,84 +141,17 @@ async function renderProductList() {
             item.className = 'admin-item';
             item.innerHTML = `
                 <div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>
-                <div class="actions"></div>
-            `;
+                <div class="actions">
+                    <button class="edit-btn">${getIconHTML('edit')}</button>
+                    <button class="delete-btn">${getIconHTML('delete')}</button>
+                </div>`;
             
-            const editBtn = document.createElement('button');
-            editBtn.className = "edit-btn";
-            editBtn.innerHTML = getIconHTML('edit');
-            editBtn.onclick = () => openModal(p);
-
-            const delBtn = document.createElement('button');
-            delBtn.className = "delete-btn";
-            delBtn.innerHTML = getIconHTML('delete');
-            delBtn.onclick = () => deleteProduct(p.id);
-
-            item.querySelector('.actions').append(editBtn, delBtn);
+            item.querySelector('.edit-btn').onclick = () => productModalManager.open(currentPath.barId, currentPath.category, p);
+            item.querySelector('.delete-btn').onclick = () => deleteProduct(p.id);
             list.appendChild(item);
         });
     } catch (e) { console.error(e); }
 }
-
-async function openModal(product = null) {
-    ui.showLoader();
-    await updateSuggestions();
-    ui.hideLoader();
-    
-    if (product) {
-        modalTitle.textContent = "Modifica Prodotto";
-        modalProductId.value = product.id;
-        modalProdNome.value = product.nome;
-        modalProdCat.value = product.categoria;
-        modalProdFornitore.value = product.fornitore;
-    } else {
-        modalTitle.textContent = "Nuovo Prodotto";
-        modalProductId.value = "";
-        modalProdNome.value = "";
-        modalProdCat.value = currentPath.category || "";
-        modalProdFornitore.value = "";
-    }
-    productModal.classList.remove('hidden');
-}
-
-async function updateSuggestions() {
-    try {
-        const products = await dbService.getProducts(currentPath.barId);
-        const cats = [...new Set(products.map(p => p.categoria))].sort();
-        const forns = [...new Set(products.map(p => p.fornitore))].sort();
-        
-        const selectCat = document.getElementById('selectCatQuick');
-        const selectForn = document.getElementById('selectFornQuick');
-        selectCat.innerHTML = '<option value="">-- Esistenti --</option>';
-        selectForn.innerHTML = '<option value="">-- Esistenti --</option>';
-        
-        cats.forEach(c => selectCat.add(new Option(c, c)));
-        forns.forEach(f => selectForn.add(new Option(f, f)));
-    } catch (e) { console.error(e); }
-}
-
-saveProductBtn.onclick = async () => {
-    const id = modalProductId.value;
-    const data = {
-        nome: modalProdNome.value.trim(),
-        categoria: modalProdCat.value.trim(),
-        fornitore: modalProdFornitore.value.trim() || "N/A",
-        updatedAt: Date.now()
-    };
-    
-    if (!data.nome || !data.categoria) return alert("Dati obbligatori mancanti");
-    
-    ui.showLoader();
-    try {
-        await dbService.saveProduct(currentPath.barId, id, data);
-        productModal.classList.add('hidden');
-        ui.showToast("Salvato!");
-        currentPath.category = data.categoria;
-        renderProductList();
-    } catch (e) { alert("Errore nel salvataggio"); } finally { ui.hideLoader(); }
-};
-
-closeModalBtn.onclick = () => productModal.classList.add('hidden');
 
 function updateBreadcrumbs() {
     breadcrumbs.innerHTML = "";
@@ -259,7 +188,7 @@ async function deleteProduct(id) {
 }
 
 async function deleteBar(id) {
-    if(confirm("Eliminare definitivamente questo bar e i suoi dati?")) {
+    if(confirm("Eliminare bar e dati?")) {
         ui.showLoader();
         try {
             await dbService.deleteBar(id);
