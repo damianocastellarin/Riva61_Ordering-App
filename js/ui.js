@@ -1,3 +1,5 @@
+import { getIconHTML } from './icons.js';
+
 export const ui = {
     showLoader: () => {
         let loader = document.getElementById('global-loader');
@@ -25,6 +27,21 @@ export const ui = {
             toast.classList.add('fade-out');
             setTimeout(() => toast.remove(), 500);
         }, duration);
+    },
+
+    initAdminButtons: () => {
+        const btns = {
+            "indietroBtn": `${getIconHTML('back')} Indietro`,
+            "avantiBtn": `Avanti ${getIconHTML('save')}`,
+            "riepilogoIndietroBtn": `${getIconHTML('back')} Modifica`,
+            "logoutBtn": `${getIconHTML('logout')} Esci dall'account`,
+            "startBtn": `${getIconHTML('add')} Inizia Nuovo Ordine`
+        };
+
+        Object.entries(btns).forEach(([id, html]) => {
+            const el = document.getElementById(id);
+            if (el) el.innerHTML = html;
+        });
     }
 };
 
@@ -44,8 +61,10 @@ export function renderStep(state, categorie) {
     }
 
     document.getElementById("categoriaNome").textContent = categoriaCorrente.nome;
-    document.getElementById("indietroBtn").disabled = state.stepIndex === 0;
-    avantiBtn.textContent = state.stepIndex === categorie.length - 1 ? "Crea Messaggio" : "Avanti";
+    const backBtn = document.getElementById("indietroBtn");
+    if(backBtn) backBtn.disabled = state.stepIndex === 0;
+    
+    if(avantiBtn) avantiBtn.textContent = state.stepIndex === categorie.length - 1 ? "Crea Messaggio" : "Avanti";
 
     const container = document.getElementById("prodottiContainer");
     container.innerHTML = "";

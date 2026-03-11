@@ -17,6 +17,10 @@ window.addEventListener('auth-success', async (e) => {
         const prodotti = await dbService.getProducts(e.detail.barId);
         CATEGORIE_DINAMICHE = orderLogic.prepareCategories(prodotti);
         
+        if (CATEGORIE_DINAMICHE.length === 0) {
+            console.warn("Nessun prodotto trovato per questo bar.");
+        }
+
         const backup = storageService.loadOrder();
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
@@ -30,13 +34,13 @@ window.addEventListener('auth-success', async (e) => {
             navigator.goTo('HOME');
         }
     } catch (error) {
-        console.error("Errore inizializzazione app:", error);
+        console.error("Errore nel caricamento iniziale:", error);
     }
 });
 
 document.getElementById("startBtn").onclick = () => {
     if (CATEGORIE_DINAMICHE.length === 0) {
-        alert("Caricamento prodotti in corso... attendi un istante.");
+        alert("Attenzione: Lista prodotti vuota o ancora in caricamento.");
         return;
     }
     resetState();
@@ -66,12 +70,14 @@ const mostraRiepilogo = () => {
 
 document.getElementById("whatsappBtn").onclick = () => orderActions.shareToWhatsApp(messaggioFinale.value);
 document.getElementById("copiaBtn").onclick = (e) => orderActions.copyToClipboard(messaggioFinale.value, e.currentTarget);
+
 document.getElementById("nuovoOrdineBtn").onclick = () => {
     if (!confirm("Vuoi iniziare un nuovo ordine?")) return;
     resetState(); 
     storageService.clearOrder(); 
     navigator.goTo('HOME');
 };
+
 document.getElementById("riepilogoIndietroBtn").onclick = () => {
     state.stepIndex = CATEGORIE_DINAMICHE.length - 1;
     navigator.goTo('STEP'); 
