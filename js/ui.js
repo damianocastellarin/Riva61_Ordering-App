@@ -31,9 +31,9 @@ export const ui = {
 
     initAdminButtons: () => {
         const btns = {
-            "indietroBtn": `${getIconHTML('back')} Indietro`,
+            "indietroBtn": `Indietro`,
             "avantiBtn": `Avanti ${getIconHTML('save')}`,
-            "riepilogoIndietroBtn": `${getIconHTML('back')} Modifica`,
+            "riepilogoIndietroBtn": `Modifica`,
             "logoutBtn": `${getIconHTML('logout')} Esci`,
             "startBtn": `Inizia Nuovo Ordine`
         };
@@ -59,8 +59,8 @@ export function renderStep(state, categorie) {
     if (indietroBtn) indietroBtn.disabled = state.stepIndex === 0;
     if (avantiBtn) {
         avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
-            `Crea Messaggio ${getIconHTML('save')}` : 
-            `Avanti ${getIconHTML('next')}`;
+            `Salva Messaggio ${getIconHTML('save')}` : 
+            `Avanti`;
     }
 
     if (progressBar) {
