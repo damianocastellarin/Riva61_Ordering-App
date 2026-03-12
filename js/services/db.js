@@ -13,7 +13,7 @@ export const dbService = {
     async getCategories(barId) {
         if (!barId) return [];
         const ref = window.fb.collection(window.fb.db, "bars", barId, "categorie");
-        const q = window.fb.query(ref, window.fb.orderBy("nome", "asc"));
+        const q = window.fb.query(ref, window.fb.orderBy("createdAt", "desc"));
         const snap = await window.fb.getDocs(q);
         return mapDocs(snap);
     },
@@ -24,9 +24,12 @@ export const dbService = {
         
         let q;
         if (category) {
-            q = window.fb.query(ref, window.fb.where("categoria", "==", category));
+            q = window.fb.query(ref, 
+                window.fb.where("categoria", "==", category),
+                window.fb.orderBy("updatedAt", "desc")
+            );
         } else {
-            q = window.fb.query(ref, window.fb.orderBy("createdAt", "asc"));
+            q = window.fb.query(ref, window.fb.orderBy("createdAt", "desc"));
         }
         
         const snap = await window.fb.getDocs(q);
@@ -35,7 +38,10 @@ export const dbService = {
 
     async saveProduct(barId, productId, data) {
         const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", data.categoria);
-        await window.fb.setDoc(catRef, { nome: data.categoria }, { merge: true });
+        await window.fb.setDoc(catRef, { 
+            nome: data.categoria,
+            createdAt: Date.now() 
+        }, { merge: true });
 
         if (productId) {
             const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
@@ -43,7 +49,11 @@ export const dbService = {
             return productId;
         } else {
             const ref = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
-            const res = await window.fb.addDoc(ref, { ...data, createdAt: Date.now() });
+            const res = await window.fb.addDoc(ref, { 
+                ...data, 
+                createdAt: Date.now(),
+                updatedAt: Date.now() 
+            });
             return res.id;
         }
     },

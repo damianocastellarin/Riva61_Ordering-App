@@ -41,10 +41,18 @@ export const productModalManager = {
                 if (isOnlyCategory) {
                     if (!isNewCat && !id) throw new Error("Questa categoria esiste già!");
                     const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
-                    await window.fb.setDoc(catRef, { nome: categoria });
+                    await window.fb.setDoc(catRef, { 
+                        nome: categoria, 
+                        createdAt: Date.now() 
+                    });
                 } else {
                     if (!nome) throw new Error("Il nome del prodotto è obbligatorio");
-                    await dbService.saveProduct(barId, id, { nome, categoria, fornitore, updatedAt: Date.now() });
+                    await dbService.saveProduct(barId, id, { 
+                        nome, 
+                        categoria, 
+                        fornitore, 
+                        updatedAt: Date.now() 
+                    });
                 }
 
                 productModal.classList.add('hidden');
@@ -106,7 +114,8 @@ export const productModalManager = {
             selectCatQuick.innerHTML = '<option value="">-- Esistenti --</option>';
             selectFornQuick.innerHTML = '<option value="">-- Esistenti --</option>';
 
-            existingCategories.forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
+            const sortedCats = [...existingCategories].sort((a,b) => a.nome.localeCompare(b.nome));
+            sortedCats.forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
             forns.forEach(f => selectFornQuick.add(new Option(f, f)));
         } catch (e) {
             console.error("Errore suggerimenti:", e);
