@@ -10,6 +10,20 @@ export const adminActions = {
         ui.hideLoader();
     },
 
+    async deleteCategory(barId, categoryName, callback) {
+        if (!confirm(`ATTENZIONE: Eliminando la categoria "${categoryName}" eliminerai anche TUTTI i prodotti al suo interno. Procedere?`)) return;
+        ui.showLoader();
+        try {
+            await dbService.deleteCategory(barId, categoryName);
+            ui.showToast("Categoria eliminata");
+            if (callback) callback();
+        } catch (e) {
+            alert("Errore nell'eliminazione");
+        } finally {
+            ui.hideLoader();
+        }
+    },
+
     async deleteBar(barId, callback) {
         if (!confirm("Eliminare bar e dati?")) return;
         ui.showLoader();

@@ -10,6 +10,14 @@ export const dbService = {
         return mapDocs(snap);
     },
 
+    async getCategories(barId) {
+        if (!barId) return [];
+        const ref = window.fb.collection(window.fb.db, "bars", barId, "categorie");
+        const q = window.fb.query(ref, window.fb.orderBy("nome", "asc"));
+        const snap = await window.fb.getDocs(q);
+        return mapDocs(snap);
+    },
+
     async getProducts(barId, category = null) {
         if (!barId) return [];
         const ref = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
@@ -26,6 +34,9 @@ export const dbService = {
     },
 
     async saveProduct(barId, productId, data) {
+        const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", data.categoria);
+        await window.fb.setDoc(catRef, { nome: data.categoria }, { merge: true });
+
         if (productId) {
             const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
             await window.fb.setDoc(ref, data, { merge: true });
@@ -40,6 +51,18 @@ export const dbService = {
     async deleteProduct(barId, productId) {
         const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
         return await window.fb.deleteDoc(ref);
+    },
+
+    async deleteCategory(barId, categoryName) {
+        const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoryName);
+        await window.fb.deleteDoc(catRef);
+
+        const prodRef = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
+        const q = window.fb.query(prodRef, window.fb.where("categoria", "==", categoryName));
+        const snap = await window.fb.getDocs(q);
+        
+        const deletePromises = snap.docs.map(doc => window.fb.deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
     },
 
     async deleteBar(barId) {

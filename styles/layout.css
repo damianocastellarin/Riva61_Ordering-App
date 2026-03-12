@@ -55,34 +55,109 @@
   transition: width 0.3s ease;
 }
 
-.header { display: flex; flex-direction: column; gap: 15px; margin-bottom: 25px; }
-.admin-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 10px; }
-#breadcrumbs { margin-bottom: 20px; font-size: 14px; color: var(--text-muted); }
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.admin-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+#breadcrumbs {
+  margin-bottom: 20px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
 
 button {
-  appearance: none; -webkit-appearance: none;
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; min-height: 54px;
-  font-size: 1rem; font-weight: 600;
-  border-radius: var(--radius-lg); border: none;
+  appearance: none;
+  -webkit-appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 54px;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: var(--radius-lg);
+  border: none;
   cursor: pointer;
   transition: opacity var(--transition-fast), transform 0.1s;
-  margin-bottom: 10px; touch-action: manipulation;
+  margin-bottom: 10px;
+  touch-action: manipulation;
 }
-button:active { transform: scale(0.98); opacity: 0.9; }
-button:disabled { background-color: #e9ecef; color: #adb5bd; cursor: not-allowed; }
 
-.btn-primary { background-color: var(--primary-color); color: white; }
-.btn-secondary { background-color: var(--secondary-color); color: white; }
-.btn-light { background-color: var(--light-gray); color: #495057; }
-.btn-success { background-color: var(--success-color); color: white; }
-.btn-danger { background-color: var(--danger-color); color: white; }
-.btn-info { background-color: var(--info-color); color: white; }
-.btn-whatsapp { background-color: var(--whatsapp-color); color: white; }
+button:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
 
-.btn-sm { flex: unset; width: auto; min-height: 40px; padding: 0 15px; border-radius: var(--radius-md); margin-bottom: 0; }
-.btn-menu { height: 80px; gap: 10px; }
-.btn-half { flex: 1; }
+button:disabled {
+  background-color: #e9ecef;
+  color: #adb5bd;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.btn-secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
+
+.btn-light {
+  background-color: var(--light-gray);
+  color: #495057;
+}
+
+.btn-success {
+  background-color: var(--success-color);
+  color: white;
+}
+
+.btn-danger {
+  background-color: var(--danger-color);
+  color: white;
+}
+
+.btn-info {
+  background-color: var(--info-color);
+  color: white;
+}
+
+.btn-whatsapp {
+  background-color: var(--whatsapp-color);
+  color: white;
+}
+
+.btn-sm {
+  flex: unset;
+  width: auto;
+  min-height: 40px;
+  padding: 0 15px;
+  border-radius: var(--radius-md);
+  margin-bottom: 0;
+}
+
+.btn-menu {
+  height: 80px;
+  gap: 10px;
+}
+
+.btn-half {
+  flex: 1;
+}
 
 .form-control {
   width: 100%;

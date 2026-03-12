@@ -13,33 +13,39 @@ const selectCatQuick = document.getElementById('selectCatQuick');
 const selectFornQuick = document.getElementById('selectFornQuick');
 
 let onSaveCallback = null;
+let existingCategories = [];
 
 export const productModalManager = {
     init(onSave) {
         onSaveCallback = onSave;
-        
         closeModalBtn.onclick = () => productModal.classList.add('hidden');
         
         saveProductBtn.onclick = async () => {
             const barId = this.currentBarId;
             const id = modalProductId.value;
-            const data = {
-                nome: modalProdNome.value.trim(),
-                categoria: modalProdCat.value.trim(),
-                fornitore: modalProdFornitore.value.trim() || "N/A",
-                updatedAt: Date.now()
-            };
+            const nome = modalProdNome.value.trim();
+            const categoria = modalProdCat.value.trim();
+            const fornitore = modalProdFornitore.value.trim() || "N/A";
 
-            if (!data.nome || !data.categoria) return alert("Dati obbligatori mancanti");
+            if (!categoria) return alert("La categoria è obbligatoria");
 
+            const isNewCat = !existingCategories.find(c => c.nome.toLowerCase() === categoria.toLowerCase());
+            
             ui.showLoader();
             try {
-                await dbService.saveProduct(barId, id, data);
+                if (!nome) {
+                    if (!isNewCat) throw new Error("Questa categoria esiste già!");
+                    const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
+                    await window.fb.setDoc(catRef, { nome: categoria });
+                } else {
+                    await dbService.saveProduct(barId, id, { nome, categoria, fornitore, updatedAt: Date.now() });
+                }
+
                 productModal.classList.add('hidden');
-                ui.showToast("Salvato!");
-                if (onSaveCallback) onSaveCallback(data.categoria);
+                ui.showToast("Operazione completata!");
+                if (onSaveCallback) onSaveCallback(categoria);
             } catch (e) {
-                alert("Errore nel salvataggio");
+                alert(e.message || "Errore nel salvataggio");
             } finally {
                 ui.hideLoader();
             }
@@ -62,25 +68,26 @@ export const productModalManager = {
             modalProdCat.value = product.categoria;
             modalProdFornitore.value = product.fornitore;
         } else {
-            modalTitle.textContent = "Nuovo Prodotto";
+            modalTitle.textContent = currentCategory ? "Nuovo Prodotto" : "Nuova Categoria";
             modalProductId.value = "";
             modalProdNome.value = "";
             modalProdCat.value = currentCategory;
             modalProdFornitore.value = "";
+            modalProdNome.placeholder = currentCategory ? "es. Croissant" : "(Lascia vuoto per creare solo la categoria)";
         }
         productModal.classList.remove('hidden');
     },
 
     async updateSuggestions(barId) {
         try {
+            existingCategories = await dbService.getCategories(barId);
             const products = await dbService.getProducts(barId);
-            const cats = [...new Set(products.map(p => p.categoria))].sort();
             const forns = [...new Set(products.map(p => p.fornitore))].sort();
 
             selectCatQuick.innerHTML = '<option value="">-- Esistenti --</option>';
             selectFornQuick.innerHTML = '<option value="">-- Esistenti --</option>';
 
-            cats.forEach(c => selectCatQuick.add(new Option(c, c)));
+            existingCategories.forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
             forns.forEach(f => selectFornQuick.add(new Option(f, f)));
         } catch (e) {
             console.error("Errore suggerimenti:", e);
