@@ -12,6 +12,9 @@ const saveProductBtn = document.getElementById('saveProductBtn');
 const selectCatQuick = document.getElementById('selectCatQuick');
 const selectFornQuick = document.getElementById('selectFornQuick');
 
+const groupNome = document.getElementById('group-nome');
+const groupFornitore = document.getElementById('group-fornitore');
+
 let onSaveCallback = null;
 let existingCategories = [];
 
@@ -33,18 +36,21 @@ export const productModalManager = {
             
             ui.showLoader();
             try {
-                if (!nome) {
-                    if (!isNewCat) throw new Error("Questa categoria esiste già!");
+                const isOnlyCategory = groupNome.classList.contains('hidden');
+
+                if (isOnlyCategory) {
+                    if (!isNewCat && !id) throw new Error("Questa categoria esiste già!");
                     const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
                     await window.fb.setDoc(catRef, { nome: categoria });
                 } else {
+                    if (!nome) throw new Error("Il nome del prodotto è obbligatorio");
                     await dbService.saveProduct(barId, id, { nome, categoria, fornitore, updatedAt: Date.now() });
                 }
 
                 productModal.classList.add('hidden');
                 ui.showToast("Operazione completata!");
                 
-                if (onSaveCallback) onSaveCallback(categoria, !nome);
+                if (onSaveCallback) onSaveCallback(categoria, isOnlyCategory);
                 
             } catch (e) {
                 alert(e.message || "Errore nel salvataggio");
@@ -63,19 +69,30 @@ export const productModalManager = {
         await this.updateSuggestions(barId);
         ui.hideLoader();
 
+        groupNome.classList.remove('hidden');
+        groupFornitore.classList.remove('hidden');
+
         if (product) {
             modalTitle.textContent = "Modifica Prodotto";
             modalProductId.value = product.id;
             modalProdNome.value = product.nome;
             modalProdCat.value = product.categoria;
             modalProdFornitore.value = product.fornitore;
-        } else {
-            modalTitle.textContent = currentCategory ? "Nuovo Prodotto" : "Nuova Categoria";
+        } else if (currentCategory) {
+            modalTitle.textContent = "Nuovo Prodotto";
             modalProductId.value = "";
             modalProdNome.value = "";
             modalProdCat.value = currentCategory;
             modalProdFornitore.value = "";
-            modalProdNome.placeholder = currentCategory ? "es. Croissant" : "(Vuoto per creare solo categoria)";
+        } else {
+            modalTitle.textContent = "Nuova Categoria";
+            modalProductId.value = "";
+            modalProdNome.value = "";
+            modalProdCat.value = "";
+            modalProdFornitore.value = "";
+            
+            groupNome.classList.add('hidden');
+            groupFornitore.classList.add('hidden');
         }
         productModal.classList.remove('hidden');
     },

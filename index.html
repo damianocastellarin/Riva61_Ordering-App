@@ -82,26 +82,26 @@
       <h3 id="modalTitle">Gestione Prodotto</h3>
       <input type="hidden" id="modalProductId">
       
-      <div class="form-group">
+      <div class="form-group" id="group-nome">
         <label>Nome Prodotto</label>
         <input type="text" id="modalProdNome" class="form-control" placeholder="es. Croissant">
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="group-categoria">
         <label>Categoria</label>
         <div class="select-wrapper">
           <input type="text" id="modalProdCat" class="form-control" placeholder="Scrivi o scegli...">
-          <select id="selectCatQuick" onchange="document.getElementById('modalProdCat').value = this.value">
+          <select id="selectCatQuick">
             <option value="">-- Esistenti --</option>
           </select>
         </div>
       </div>
 
-      <div class="form-group">
+      <div class="form-group" id="group-fornitore">
         <label>Fornitore</label>
         <div class="select-wrapper">
           <input type="text" id="modalProdFornitore" class="form-control" placeholder="Scrivi o scegli...">
-          <select id="selectFornQuick" onchange="document.getElementById('modalProdFornitore').value = this.value">
+          <select id="selectFornQuick">
             <option value="">-- Esistenti --</option>
           </select>
         </div>
