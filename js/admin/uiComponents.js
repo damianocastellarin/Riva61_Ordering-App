@@ -7,14 +7,12 @@ export const uiComponents = {
         container.style.cssText = "display:flex; flex-direction:column; gap:20px; padding:20px;";
 
         const btnOrders = document.createElement('button');
-        btnOrders.className = "btn-primary";
-        btnOrders.style.cssText = "height:80px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px;";
+        btnOrders.className = "btn-primary btn-menu";
         btnOrders.innerHTML = `${getIconHTML('save')} FAI ORDINI`;
         btnOrders.onclick = onOrders;
 
         const btnEdit = document.createElement('button');
-        btnEdit.className = "btn-secondary";
-        btnEdit.style.cssText = "height:80px; font-weight:bold; display:flex; align-items:center; justify-content:center; gap:10px;";
+        btnEdit.className = "btn-light btn-menu";
         btnEdit.innerHTML = `${getIconHTML('edit')} MODIFICA PRODOTTI`;
         btnEdit.onclick = onEdit;
 
@@ -35,7 +33,7 @@ export const uiComponents = {
 
         if (onEdit) {
             const btn = document.createElement('button');
-            btn.className = 'edit-btn';
+            btn.className = 'edit-btn btn-info btn-sm';
             btn.innerHTML = getIconHTML('edit');
             btn.onclick = (e) => { e.stopPropagation(); onEdit(); };
             actions.appendChild(btn);
@@ -43,21 +41,20 @@ export const uiComponents = {
 
         if (onDelete) {
             const btn = document.createElement('button');
-            btn.className = 'delete-btn';
+            btn.className = 'delete-btn btn-danger btn-sm';
             btn.innerHTML = getIconHTML('delete');
             btn.onclick = (e) => { e.stopPropagation(); onDelete(); };
             actions.appendChild(btn);
         }
 
         item.appendChild(actions);
-        item.onclick = onClick;
+        if(onClick) item.onclick = onClick;
         return item;
     },
 
     createAddButton(label, onClick) {
         const btn = document.createElement('button');
-        btn.className = "btn-secondary";
-        btn.style.marginBottom = "10px";
+        btn.className = "btn-light";
         btn.innerHTML = `${getIconHTML('add')} ${label}`;
         btn.onclick = onClick;
         return btn;

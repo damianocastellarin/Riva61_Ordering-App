@@ -14,7 +14,7 @@
 <body>
   <div id="update-toast" class="hidden">
     <span>Nuova versione disponibile!</span>
-    <button id="refresh-btn">Aggiorna</button>
+    <button id="refresh-btn" class="btn-primary btn-sm">Aggiorna</button>
   </div>
 
   <div id="progressContainer" class="progress-container hidden">
@@ -24,33 +24,35 @@
   <main class="container">
     <div id="login-container">
       <h1 class="main-title">Accesso Riservato</h1>
-      <div id="login-form">
-        <input type="email" id="login-email" placeholder="Email">
+      <div id="login-form" style="width: 100%;">
+        <div class="form-group">
+          <input type="email" id="login-email" class="form-control" placeholder="Email">
+        </div>
         
         <div class="password-wrapper">
-          <input type="password" id="login-password" placeholder="Password">
+          <input type="password" id="login-password" class="form-control" placeholder="Password">
           <span id="togglePassword" class="toggle-icon"></span>
         </div>
         
-        <button id="loginBtn">Accedi</button>
-        <button id="installBtnLogin" class="btn-install hidden">Installa l'App</button>
+        <button id="loginBtn" class="btn-success">Accedi</button>
+        <button id="installBtnLogin" class="btn-success hidden">Installa l'App</button>
       </div>
     </div>
 
     <div id="app-content" class="hidden">
       <div id="home">
         <h1 class="main-title">Ordini Bar</h1>
-        <button id="startBtn">Inizia Nuovo Ordine</button>
+        <button id="startBtn" class="btn-primary">Inizia Nuovo Ordine</button>
         <button id="logoutBtn" class="btn-danger">Esci dall'account</button>
-        <button id="installBtnHome" class="btn-install hidden">Installa App</button>
+        <button id="installBtnHome" class="btn-success hidden">Installa App</button>
       </div>
       
       <div id="step" class="hidden">
         <header class="header">
-          <h2 id="categoriaNome"></h2>
-          <div class="nav-buttons">
-            <button id="indietroBtn" class="btn-small"></button>
-            <button id="avantiBtn" class="btn-small"></button>
+          <h2 id="categoriaNome" class="main-title" style="margin-bottom:0;"></h2>
+          <div class="nav-buttons" style="display:flex; gap:10px;">
+            <button id="indietroBtn" class="btn-secondary btn-half"></button>
+            <button id="avantiBtn" class="btn-primary btn-half"></button>
           </div>
         </header>
         <div id="prodottiContainer"></div>
@@ -58,17 +60,17 @@
 
       <div id="riepilogo" class="hidden">
         <textarea id="messaggioFinale" readonly></textarea>
-        <button id="copiaBtn" class="btn-action">Copia Messaggio</button>
+        <button id="copiaBtn" class="btn-info">Copia Messaggio</button>
         <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
-        <button id="riepilogoIndietroBtn" class="btn-secondary"></button>
+        <button id="riepilogoIndietroBtn" class="btn-light">Modifica</button>
         <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
       </div>
     </div>
 
     <div id="admin-content" class="hidden">
-      <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-          <h2 id="adminTitleHeader">Area Gestionale</h2>
-          <button id="logoutAdminBtn" class="btn-small"></button>
+      <header class="admin-header">
+          <h2 id="adminTitleHeader" style="margin:0;">Area Gestionale</h2>
+          <button id="logoutAdminBtn" class="btn-danger btn-sm"></button>
       </header>
       <div id="breadcrumbs"></div>
       <div id="admin-view"></div>
@@ -82,13 +84,13 @@
       
       <div class="form-group">
         <label>Nome Prodotto</label>
-        <input type="text" id="modalProdNome" placeholder="es. Croissant">
+        <input type="text" id="modalProdNome" class="form-control" placeholder="es. Croissant">
       </div>
 
       <div class="form-group">
         <label>Categoria</label>
         <div class="select-wrapper">
-          <input type="text" id="modalProdCat" placeholder="Scrivi o scegli...">
+          <input type="text" id="modalProdCat" class="form-control" placeholder="Scrivi o scegli...">
           <select id="selectCatQuick" onchange="document.getElementById('modalProdCat').value = this.value">
             <option value="">-- Esistenti --</option>
           </select>
@@ -98,7 +100,7 @@
       <div class="form-group">
         <label>Fornitore</label>
         <div class="select-wrapper">
-          <input type="text" id="modalProdFornitore" placeholder="Scrivi o scegli...">
+          <input type="text" id="modalProdFornitore" class="form-control" placeholder="Scrivi o scegli...">
           <select id="selectFornQuick" onchange="document.getElementById('modalProdFornitore').value = this.value">
             <option value="">-- Esistenti --</option>
           </select>
@@ -106,8 +108,8 @@
       </div>
 
       <div class="modal-buttons">
-        <button id="closeModalBtn" class="btn-secondary">Annulla</button>
-        <button id="saveProductBtn" class="btn-primary"></button>
+        <button id="closeModalBtn" class="btn-light btn-half">Annulla</button>
+        <button id="saveProductBtn" class="btn-primary btn-half"></button>
       </div>
     </div>
   </div>
