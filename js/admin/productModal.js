@@ -43,7 +43,9 @@ export const productModalManager = {
 
                 productModal.classList.add('hidden');
                 ui.showToast("Operazione completata!");
-                if (onSaveCallback) onSaveCallback(categoria);
+                
+                if (onSaveCallback) onSaveCallback(categoria, !nome);
+                
             } catch (e) {
                 alert(e.message || "Errore nel salvataggio");
             } finally {
@@ -73,7 +75,7 @@ export const productModalManager = {
             modalProdNome.value = "";
             modalProdCat.value = currentCategory;
             modalProdFornitore.value = "";
-            modalProdNome.placeholder = currentCategory ? "es. Croissant" : "(Lascia vuoto per creare solo la categoria)";
+            modalProdNome.placeholder = currentCategory ? "es. Croissant" : "(Vuoto per creare solo categoria)";
         }
         productModal.classList.remove('hidden');
     },

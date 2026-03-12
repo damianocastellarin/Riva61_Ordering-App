@@ -9,9 +9,13 @@ const breadcrumbsContainer = document.getElementById('breadcrumbs');
 let currentPath = { barId: null, barName: '', category: '' };
 let isSuperAdmin = false;
 
-productModalManager.init((newCat) => { 
-    currentPath.category = newCat; 
-    renderProductList(); 
+productModalManager.init((newCat, isOnlyCategory) => { 
+    if (isOnlyCategory) {
+        renderCategoryList();
+    } else {
+        currentPath.category = newCat; 
+        renderProductList();
+    }
 });
 
 window.renderBarList = renderBarList;
@@ -71,7 +75,6 @@ async function renderCategoryList() {
     currentPath.category = '';
     updateUI();
     adminView.innerHTML = "";
-    
     adminView.appendChild(uiComponents.createAddButton("Nuova Categoria", () => productModalManager.open(currentPath.barId)));
     
     const list = document.createElement('div');
@@ -95,7 +98,6 @@ async function renderCategoryList() {
 async function renderProductList() {
     updateUI();
     adminView.innerHTML = "";
-    
     adminView.appendChild(uiComponents.createAddButton("Nuovo Prodotto", () => productModalManager.open(currentPath.barId, currentPath.category)));
     
     const list = document.createElement('div');
@@ -106,7 +108,7 @@ async function renderProductList() {
     
     prodotti.forEach(p => list.appendChild(uiComponents.createListItem(
         `<div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>`,
-        null,
+        null, 
         () => adminActions.deleteProduct(currentPath.barId, p.id, renderProductList),
         () => productModalManager.open(currentPath.barId, currentPath.category, p)
     )));

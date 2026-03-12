@@ -5,9 +5,15 @@ export const adminActions = {
     async deleteProduct(barId, productId, callback) {
         if (!confirm("Eliminare prodotto?")) return;
         ui.showLoader();
-        await dbService.deleteProduct(barId, productId);
-        if (callback) callback();
-        ui.hideLoader();
+        try {
+            await dbService.deleteProduct(barId, productId);
+            ui.showToast("Prodotto eliminato");
+            if (callback) callback();
+        } catch (e) {
+            alert("Errore nell'eliminazione");
+        } finally {
+            ui.hideLoader();
+        }
     },
 
     async deleteCategory(barId, categoryName, callback) {
@@ -25,11 +31,17 @@ export const adminActions = {
     },
 
     async deleteBar(barId, callback) {
-        if (!confirm("Eliminare bar e dati?")) return;
+        if (!confirm("Eliminare bar e tutti i dati associati?")) return;
         ui.showLoader();
-        await dbService.deleteBar(barId);
-        if (callback) callback();
-        ui.hideLoader();
+        try {
+            await dbService.deleteBar(barId);
+            ui.showToast("Bar eliminato");
+            if (callback) callback();
+        } catch (e) {
+            alert("Errore nell'eliminazione");
+        } finally {
+            ui.hideLoader();
+        }
     },
 
     goToOrders(barId) {
