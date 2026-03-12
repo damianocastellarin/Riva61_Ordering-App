@@ -1,7 +1,6 @@
 import { getIconHTML } from '../icons.js';
 
 export const uiComponents = {
-
     createAdminChoiceMenu(onOrders, onEdit) {
         const container = document.createElement('div');
         container.style.cssText = "display:flex; flex-direction:column; gap:20px; padding:20px;";

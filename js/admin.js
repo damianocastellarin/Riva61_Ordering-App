@@ -90,7 +90,8 @@ async function renderCategoryList() {
                 currentPath.category = cat.nome; 
                 renderProductList(); 
             },
-            () => adminActions.deleteCategory(currentPath.barId, cat.nome, renderCategoryList)
+            () => adminActions.deleteCategory(currentPath.barId, cat.nome, renderCategoryList),
+            () => productModalManager.open(currentPath.barId, cat.nome, null, true)
         ));
     });
 }

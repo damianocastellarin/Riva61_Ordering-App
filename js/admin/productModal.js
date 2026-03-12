@@ -17,6 +17,7 @@ const groupFornitore = document.getElementById('group-fornitore');
 
 let onSaveCallback = null;
 let existingCategories = [];
+let oldCategoryName = null;
 
 export const productModalManager = {
     init(onSave) {
@@ -32,32 +33,29 @@ export const productModalManager = {
 
             if (!categoria) return alert("La categoria è obbligatoria");
 
-            const isNewCat = !existingCategories.find(c => c.nome.toLowerCase() === categoria.toLowerCase());
-            
             ui.showLoader();
             try {
                 const isOnlyCategory = groupNome.classList.contains('hidden');
 
                 if (isOnlyCategory) {
-                    if (!isNewCat && !id) throw new Error("Questa categoria esiste già!");
-                    const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
-                    await window.fb.setDoc(catRef, { 
-                        nome: categoria, 
-                        createdAt: Date.now() 
-                    });
+                    if (oldCategoryName) {
+                        await dbService.renameCategory(barId, oldCategoryName, categoria);
+                    } else {
+                        const isNew = !existingCategories.find(c => c.nome.toLowerCase() === categoria.toLowerCase());
+                        if (!isNew) throw new Error("Questa categoria esiste già!");
+                        
+                        const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
+                        await window.fb.setDoc(catRef, { nome: categoria, createdAt: Date.now() });
+                    }
                 } else {
                     if (!nome) throw new Error("Il nome del prodotto è obbligatorio");
                     await dbService.saveProduct(barId, id, { 
-                        nome, 
-                        categoria, 
-                        fornitore, 
-                        updatedAt: Date.now() 
+                        nome, categoria, fornitore, updatedAt: Date.now() 
                     });
                 }
 
                 productModal.classList.add('hidden');
                 ui.showToast("Operazione completata!");
-                
                 if (onSaveCallback) onSaveCallback(categoria, isOnlyCategory);
                 
             } catch (e) {
@@ -71,8 +69,10 @@ export const productModalManager = {
         if(selectFornQuick) selectFornQuick.onchange = (e) => { if(e.target.value) modalProdFornitore.value = e.target.value; };
     },
 
-    async open(barId, currentCategory = '', product = null) {
+    async open(barId, currentCategory = '', product = null, isEditCategory = false) {
         this.currentBarId = barId;
+        oldCategoryName = isEditCategory ? currentCategory : null;
+        
         ui.showLoader();
         await this.updateSuggestions(barId);
         ui.hideLoader();
@@ -86,6 +86,14 @@ export const productModalManager = {
             modalProdNome.value = product.nome;
             modalProdCat.value = product.categoria;
             modalProdFornitore.value = product.fornitore;
+        } else if (isEditCategory) {
+            modalTitle.textContent = "Modifica Categoria";
+            modalProductId.value = "";
+            modalProdNome.value = "";
+            modalProdCat.value = currentCategory;
+            modalProdFornitore.value = "";
+            groupNome.classList.add('hidden');
+            groupFornitore.classList.add('hidden');
         } else if (currentCategory) {
             modalTitle.textContent = "Nuovo Prodotto";
             modalProductId.value = "";
@@ -98,7 +106,6 @@ export const productModalManager = {
             modalProdNome.value = "";
             modalProdCat.value = "";
             modalProdFornitore.value = "";
-            
             groupNome.classList.add('hidden');
             groupFornitore.classList.add('hidden');
         }
@@ -110,15 +117,11 @@ export const productModalManager = {
             existingCategories = await dbService.getCategories(barId);
             const products = await dbService.getProducts(barId);
             const forns = [...new Set(products.map(p => p.fornitore))].sort();
-
             selectCatQuick.innerHTML = '<option value="">-- Esistenti --</option>';
             selectFornQuick.innerHTML = '<option value="">-- Esistenti --</option>';
-
-            const sortedCats = [...existingCategories].sort((a,b) => a.nome.localeCompare(b.nome));
-            sortedCats.forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
+            [...existingCategories].sort((a,b) => a.nome.localeCompare(b.nome))
+                .forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
             forns.forEach(f => selectFornQuick.add(new Option(f, f)));
-        } catch (e) {
-            console.error("Errore suggerimenti:", e);
-        }
+        } catch (e) { console.error(e); }
     }
 };

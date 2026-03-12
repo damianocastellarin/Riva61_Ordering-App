@@ -58,6 +58,25 @@ export const dbService = {
         }
     },
 
+    async renameCategory(barId, oldName, newName) {
+        if (oldName === newName) return;
+
+        const newCatRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", newName);
+        await window.fb.setDoc(newCatRef, { nome: newName, createdAt: Date.now() });
+
+        const prodRef = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
+        const q = window.fb.query(prodRef, window.fb.where("categoria", "==", oldName));
+        const snap = await window.fb.getDocs(q);
+
+        const updatePromises = snap.docs.map(d => 
+            window.fb.setDoc(d.ref, { categoria: newName }, { merge: true })
+        );
+        await Promise.all(updatePromises);
+
+        const oldCatRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", oldName);
+        await window.fb.deleteDoc(oldCatRef);
+    },
+
     async deleteProduct(barId, productId) {
         const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
         return await window.fb.deleteDoc(ref);
@@ -76,7 +95,7 @@ export const dbService = {
     },
 
     async deleteBar(barId) {
-        const ref = window.fb.doc(window.fb.db, "users", barId);
+        const ref = window.fb.doc(window.fb.doc, "users", barId);
         return await window.fb.deleteDoc(ref);
     }
 };
