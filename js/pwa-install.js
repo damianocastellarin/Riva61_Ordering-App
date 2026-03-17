@@ -1,10 +1,12 @@
 let deferredPrompt;
-const installButtons = document.querySelectorAll('.btn-install');
+
+const getInstallButtons = () => document.querySelectorAll('.btn-install');
 
 const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
 
 const toggleInstallButtons = (show) => {
-    installButtons.forEach(btn => {
+    const btns = getInstallButtons();
+    btns.forEach(btn => {
         if (show) btn.classList.remove('hidden');
         else btn.classList.add('hidden');
     });
@@ -12,13 +14,14 @@ const toggleInstallButtons = (show) => {
 
 if (!isStandalone) {
     window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('PWA: Evento installazione catturato');
         e.preventDefault();
         deferredPrompt = e;
         toggleInstallButtons(true);
     });
 
-    installButtons.forEach(btn => {
-        btn.addEventListener('click', async () => {
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('btn-install')) {
             if (deferredPrompt) {
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
@@ -31,15 +34,16 @@ if (!isStandalone) {
                     alert("Per installare l'app su iPhone:\n1. Apri con Safari\n2. Clicca sul tasto 'Condividi' (quadrato con freccia su)\n3. Scorri e clicca 'Aggiungi alla schermata Home'");
                 }
             }
-        });
+        }
     });
 
     if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        toggleInstallButtons(true);
+        setTimeout(() => toggleInstallButtons(true), 1000);
     }
 }
 
 window.addEventListener('appinstalled', () => {
+    console.log('PWA: App installata con successo');
     toggleInstallButtons(false);
     deferredPrompt = null;
 });
