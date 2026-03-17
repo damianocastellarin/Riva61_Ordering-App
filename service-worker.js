@@ -1,16 +1,20 @@
-const CACHE_NAME = 'ordini-cache-v1';
+const CACHE_NAME = 'ordini-cache-v2';
 const urlsToCache = [
   './',
   './index.html',
   './styles/reset.css',
   './styles/layout.css',
   './js/app.js',
-  './js/state.js',
   './js/ui.js',
-  './js/pwa-install.js',
-  './js/orderBuilder.js',
+  './js/icons.js',
   './js/auth.js',
   './js/constants.js',
+  './js/pwa-install.js',
+  './js/services/db.js',
+  './js/admin/uiComponents.js',
+  './js/admin/productModal.js',
+  './js/admin/breadcrumbs.js',
+  './js/admin/adminActions.js',
   './manifest.json',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png'
@@ -26,7 +30,7 @@ self.addEventListener('install', event => {
               if (!response.ok) throw new Error(`Fallito download: ${url}`);
               return cache.put(url, response);
             })
-            .catch(err => console.error("Errore installazione risorsa:", url, err));
+            .catch(err => console.error("SW Install Error:", url, err));
         })
       );
     })
@@ -44,18 +48,9 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
-self.addEventListener('message', event => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});
-
 self.addEventListener('fetch', event => {
   if (event.request.method !== 'GET') return;
-
-  if (event.request.url.includes('firebasejs') || event.request.url.includes('firestore.googleapis')) {
-    return;
-  }
+  if (event.request.url.includes('firebasejs') || event.request.url.includes('firestore.googleapis')) return;
 
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
@@ -65,10 +60,7 @@ self.addEventListener('fetch', event => {
           caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
         }
         return networkResponse;
-      }).catch(() => {
-        return cachedResponse;
-      });
-
+      }).catch(() => cachedResponse);
       return cachedResponse || fetchPromise;
     })
   );

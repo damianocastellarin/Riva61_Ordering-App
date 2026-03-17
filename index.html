@@ -150,11 +150,8 @@
       loginBtn.onclick = async () => {
         const email = document.getElementById('login-email').value;
         const pass = document.getElementById('login-password').value;
-        
         if(!email || !pass) return alert("Inserisci email e password");
-
         ui.showLoader();
-
         try {
           await signInWithEmailAndPassword(auth, email, pass);
           ui.showToast("Accesso in corso...");
@@ -171,5 +168,15 @@
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/admin.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('SW: Registrato'))
+          .catch(err => console.error('SW: Errore', err));
+      });
+    }
+  </script>
 </body>
 </html>
