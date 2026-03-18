@@ -15,7 +15,7 @@ export const navigator = {
         
         if (viewName === 'ADMIN') {
             if (appContent) appContent.classList.add("hidden");
-            views.ADMIN.classList.remove("hidden");
+            if (views.ADMIN) views.ADMIN.classList.remove("hidden");
         } else {
             if (appContent) appContent.classList.remove("hidden");
             if (views.ADMIN) views.ADMIN.classList.add("hidden");
@@ -26,15 +26,12 @@ export const navigator = {
         });
 
         const target = views[viewName];
-        if (target) {
-            target.classList.remove("hidden");
-        }
+        if (target) target.classList.remove("hidden");
 
         if (progressContainer) {
-            if (viewName === 'STEP') progressContainer.classList.remove("hidden");
-            else progressContainer.classList.add("hidden");
+            progressContainer.classList.toggle("hidden", viewName !== 'STEP');
         }
         
-        window.scrollTo(0, 0);
+        window.scrollTo({ top: 0, behavior: 'instant' });
     }
 };

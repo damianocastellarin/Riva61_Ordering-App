@@ -15,12 +15,16 @@ let PRODOTTI_DATA = [];
 ui.initAdminButtons();
 
 router.add('#home', () => homeView.render(CATEGORIE_DINAMICHE));
-router.add('#step', () => orderView.render(CATEGORIE_DINAMICHE));
+
+router.add('#step', (param) => orderView.render(CATEGORIE_DINAMICHE, param));
+
 router.add('#riepilogo', () => summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE));
+
 
 window.addEventListener('auth-success', async (e) => {
     try {
         ui.showLoader();
+        
         document.getElementById('admin-content').classList.add('hidden');
         document.getElementById('app-content').classList.remove('hidden');
 
@@ -28,10 +32,14 @@ window.addEventListener('auth-success', async (e) => {
         CATEGORIE_DINAMICHE = orderLogic.prepareCategories(PRODOTTI_DATA);
         
         const backup = storageService.loadOrder();
+        
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
-            const targetHash = state.stepIndex >= CATEGORIE_DINAMICHE.length ? '#riepilogo' : '#step';
-            router.replace(targetHash);
+                        if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+                router.replace('#riepilogo');
+            } else {
+                router.replace(`#step/${state.stepIndex}`);
+            }
         } else {
             router.replace('#home');
         }

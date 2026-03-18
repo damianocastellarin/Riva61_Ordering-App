@@ -7,27 +7,28 @@ export const router = {
     },
 
     navigate(hash) {
-        if (window.location.hash === hash) {
-            this.handleRoute();
-        } else {
+        if (window.location.hash !== hash) {
             window.location.hash = hash;
+        } else {
+            this.handleRoute();
         }
     },
 
     replace(hash) {
-        const url = new URL(window.location);
-        url.hash = hash;
-        window.location.replace(url.href);
+        window.location.replace(window.location.origin + window.location.pathname + hash);
         this.handleRoute();
     },
 
     handleRoute() {
-        const hash = window.location.hash || '#home';        
-        const callback = this.routes[hash];
+        const fullHash = window.location.hash || '#home';
+        const [baseHash, param] = fullHash.split('/');
+        
+        const callback = this.routes[baseHash];
         if (callback) {
-            callback();
+            callback(param); 
         } else {
-            console.warn("[Router] Nessuna vista trovata per", hash);
+            console.warn("[Router] Percorso non trovato:", baseHash);
+            this.replace('#home');
         }
     },
 

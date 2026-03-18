@@ -5,11 +5,21 @@ import { navigator } from "../order/navigator.js";
 import { router } from "../router.js";
 
 export const orderView = {
-    render(categorie) {
+    render(categorie, stepFromUrl) {
         if (!categorie || categorie.length === 0) return;
+
+        if (stepFromUrl !== undefined) {
+            state.stepIndex = parseInt(stepFromUrl, 10);
+        }
+
         navigator.goTo('STEP');
 
         const categoriaCorrente = categorie[state.stepIndex];
+        if (!categoriaCorrente) {
+            router.replace('#home');
+            return;
+        }
+
         const container = document.getElementById("prodottiContainer");
         const catNome = document.getElementById("categoriaNome");
         const avantiBtn = document.getElementById("avantiBtn");
@@ -17,35 +27,23 @@ export const orderView = {
         const progressBar = document.getElementById("progressBar");
 
         if (catNome) catNome.textContent = categoriaCorrente.nome;
-        
-        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
-            `Salva Messaggio ${getIconHTML('save')}` : `Avanti`;
-
+                avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
+            `Riepilogo ${getIconHTML('save')}` : `Avanti`;
         avantiBtn.onclick = () => {
-            state.stepIndex++;
-            storageService.saveOrder(state);
-            if (state.stepIndex >= categorie.length) {
+            const nextStep = state.stepIndex + 1;
+            if (nextStep >= categorie.length) {
                 router.navigate('#riepilogo');
             } else {
-                this.render(categorie);
+                router.navigate(`#step/${nextStep}`);
             }
         };
-
         indietroBtn.onclick = () => {
-            if (state.stepIndex <= 0) {
-                router.navigate('#home');
-            } else {
-                state.stepIndex--;
-                storageService.saveOrder(state);
-                this.render(categorie);
-            }
+            window.history.back();
         };
-
         if (progressBar) {
             const progress = ((state.stepIndex + 1) / categorie.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
-
         container.innerHTML = "";
         categoriaCorrente.prodotti.forEach(nomeProdotto => {
             const div = document.createElement("div");
@@ -62,8 +60,7 @@ export const orderView = {
             const input = div.querySelector('input');
             const update = (val) => {
                 let v = parseInt(val, 10) || 0;
-                if (v < 0) v = 0;
-                if (v > 99) v = 99;
+                v = Math.max(0, Math.min(99, v));
                 state.risposte[nomeProdotto] = v;
                 input.value = v > 0 ? v : "";
                 div.classList.toggle('filled', v > 0);

@@ -7,7 +7,11 @@ export const breadcrumbsManager = {
             el.textContent = label;
             if (action) {
                 el.style.cursor = "pointer";
-                el.onclick = action;
+                el.className = "breadcrumb-link";
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    action();
+                };
             }
             return el;
         };
