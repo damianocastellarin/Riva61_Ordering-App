@@ -11,19 +11,17 @@ const passwordInput = document.getElementById('login-password');
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
         try {
+            ui.showLoader();
             const userDoc = await window.fb.getDoc(window.fb.doc(window.fb.db, "users", user.uid));
+            
             if (userDoc.exists()) {
                 const userData = userDoc.data();
                 loginContainer.classList.add('hidden');
                 
                 if (userData.role === "superadmin") {
-                    appContent.classList.add('hidden');
-                    adminContent.classList.remove('hidden');
                     window.dispatchEvent(new CustomEvent('superadmin-success'));
                 } 
                 else if (userData.role === "admin") {
-                    appContent.classList.add('hidden');
-                    adminContent.classList.remove('hidden');
                     window.dispatchEvent(new CustomEvent('admin-bar-choice', { 
                         detail: { 
                             barId: userData.barId || user.uid, 
@@ -32,16 +30,13 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                     }));
                 } 
                 else {
-                    adminContent.classList.add('hidden');
-                    appContent.classList.remove('hidden');
                     window.dispatchEvent(new CustomEvent('auth-success', { 
                         detail: { barId: userData.barId } 
                     }));
                 }
             }
         } catch (error) {
-            console.error(error);
-        } finally {
+            console.error("Errore Auth:", error);
             ui.hideLoader();
         }
     } else {

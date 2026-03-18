@@ -15,15 +15,16 @@ export const summaryView = {
         document.getElementById("copiaBtn").onclick = (e) => orderActions.copyToClipboard(messaggioFinale.value, e.currentTarget);
 
         document.getElementById("nuovoOrdineBtn").onclick = () => {
-            if (!confirm("Nuovo ordine?")) return;
+            if (!confirm("Vuoi iniziare un nuovo ordine? I dati attuali verranno persi.")) return;
             resetState();
             storageService.clearOrder();
             router.navigate('#home');
         };
 
         document.getElementById("riepilogoIndietroBtn").onclick = () => {
-            state.stepIndex = categorie.length - 1;
-            router.navigate('#step');
+            const lastIndex = categorie.length > 0 ? categorie.length - 1 : 0;
+            state.stepIndex = lastIndex;
+            router.navigate(`#step/${lastIndex}`);
         };
     }
 };

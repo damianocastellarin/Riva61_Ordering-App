@@ -14,7 +14,11 @@ export const ui = {
 
     hideLoader: () => {
         const loader = document.getElementById('global-loader');
-        if (loader) loader.classList.add('hidden');
+        if (loader) {
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 150);
+        }
     },
 
     showToast: (text, duration = 2000) => {
@@ -35,6 +39,7 @@ export const ui = {
             "avantiBtn": `Avanti ${getIconHTML('save')}`,
             "riepilogoIndietroBtn": `Modifica`,
             "logoutBtn": `${getIconHTML('logout')} Esci`,
+            "logoutAdminBtn": `${getIconHTML('logout')} Esci`,
             "startBtn": `Inizia Nuovo Ordine`
         };
 
@@ -44,77 +49,3 @@ export const ui = {
         });
     }
 };
-
-export function renderStep(state, categorie) {
-    if (!categorie || categorie.length === 0) return;
-    const categoriaCorrente = categorie[state.stepIndex];
-    
-    const container = document.getElementById("prodottiContainer");
-    const catNome = document.getElementById("categoriaNome");
-    const avantiBtn = document.getElementById("avantiBtn");
-    const indietroBtn = document.getElementById("indietroBtn");
-    const progressBar = document.getElementById("progressBar");
-
-    if (catNome) catNome.textContent = categoriaCorrente.nome;
-    if (indietroBtn) indietroBtn.disabled = state.stepIndex === 0;
-    if (avantiBtn) {
-        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
-            `Salva Messaggio ${getIconHTML('save')}` : 
-            `Avanti`;
-    }
-
-    if (progressBar) {
-        const progress = ((state.stepIndex + 1) / categorie.length) * 100;
-        progressBar.style.width = `${progress}%`;
-    }
-
-    container.innerHTML = "";
-    categoriaCorrente.prodotti.forEach(nomeProdotto => {
-        const div = document.createElement("div");
-        div.className = `input-row ${state.risposte[nomeProdotto] > 0 ? 'filled' : ''}`;
-        
-        div.innerHTML = `
-            <label>${nomeProdotto}</label>
-            <div class="qty-controls">
-                <button class="btn-qty minus">-</button>
-                <input type="number" inputmode="numeric" value="${state.risposte[nomeProdotto] || ''}" placeholder="0">
-                <button class="btn-qty plus">+</button>
-            </div>
-        `;
-
-        const input = div.querySelector('input');
-        const update = (val) => {
-            let v = parseInt(val, 10);
-            
-            if (isNaN(v)) v = 0;
-
-            if (v > 99) {
-                input.value = state.risposte[nomeProdotto] > 0 ? state.risposte[nomeProdotto] : "";
-                return;
-            }
-
-            if (v < 0) v = 0;
-
-            state.risposte[nomeProdotto] = v;
-            input.value = v > 0 ? v : "";
-            div.classList.toggle('filled', v > 0);
-            sessionStorage.setItem("ordine_bar_salvato", JSON.stringify(state));
-        };
-
-        div.querySelector('.minus').onclick = () => update((state.risposte[nomeProdotto] || 0) - 1);
-        div.querySelector('.plus').onclick = () => update((state.risposte[nomeProdotto] || 0) + 1);
-        
-        input.oninput = (e) => {
-            let val = e.target.value;
-            
-            if (val.length > 2) {
-                val = val.slice(0, 2);
-                e.target.value = val;
-            }
-            
-            update(val);
-        };
-
-        container.appendChild(div);
-    });
-}

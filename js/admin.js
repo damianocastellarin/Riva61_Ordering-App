@@ -20,6 +20,8 @@ productModalManager.init();
 
 window.addEventListener('superadmin-success', () => { 
     isSuperAdmin = true; 
+    document.getElementById('app-content').classList.add('hidden');
+    document.getElementById('admin-content').classList.remove('hidden');
     router.replace('#admin/bars'); 
 });
 
@@ -27,6 +29,8 @@ window.addEventListener('admin-bar-choice', (e) => {
     isSuperAdmin = false;
     currentPath.barId = e.detail.barId;
     currentPath.barName = e.detail.barName;
+    document.getElementById('app-content').classList.add('hidden');
+    document.getElementById('admin-content').classList.remove('hidden');
     router.replace('#admin/choice');
 });
 

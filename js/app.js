@@ -15,11 +15,8 @@ let PRODOTTI_DATA = [];
 ui.initAdminButtons();
 
 router.add('#home', () => homeView.render(CATEGORIE_DINAMICHE));
-
 router.add('#step', (param) => orderView.render(CATEGORIE_DINAMICHE, param));
-
 router.add('#riepilogo', () => summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE));
-
 
 window.addEventListener('auth-success', async (e) => {
     try {
@@ -35,7 +32,7 @@ window.addEventListener('auth-success', async (e) => {
         
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
-                        if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+            if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
                 router.replace('#riepilogo');
             } else {
                 router.replace(`#step/${state.stepIndex}`);
@@ -44,7 +41,7 @@ window.addEventListener('auth-success', async (e) => {
             router.replace('#home');
         }
     } catch (error) {
-        console.error("Errore init:", error);
+        console.error("Errore inizializzazione utente:", error);
     } finally {
         ui.hideLoader();
     }
