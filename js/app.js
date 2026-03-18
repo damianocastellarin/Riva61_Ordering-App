@@ -32,10 +32,11 @@ window.addEventListener('auth-success', async (e) => {
         } else {
             router.navigate('#home');
         }
-        router.init();
     } catch (error) {
         console.error("Errore init:", error);
     } finally {
         ui.hideLoader();
     }
 });
+
+router.init();
