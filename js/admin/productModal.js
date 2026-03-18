@@ -1,5 +1,6 @@
 import { ui } from '../ui.js';
 import { dbService } from '../services/db.js';
+import { router } from '../router.js';
 
 const productModal = document.getElementById('productModal');
 const modalTitle = document.getElementById('modalTitle');
@@ -15,17 +16,16 @@ const selectFornQuick = document.getElementById('selectFornQuick');
 const groupNome = document.getElementById('group-nome');
 const groupFornitore = document.getElementById('group-fornitore');
 
-let onSaveCallback = null;
 let existingCategories = [];
 let oldCategoryName = null;
+let currentBarId = null;
 
 export const productModalManager = {
-    init(onSave) {
-        onSaveCallback = onSave;
+    init() {
         closeModalBtn.onclick = () => productModal.classList.add('hidden');
         
         saveProductBtn.onclick = async () => {
-            const barId = this.currentBarId;
+            const barId = currentBarId;
             const id = modalProductId.value;
             const nome = modalProdNome.value.trim();
             const categoria = modalProdCat.value.trim();
@@ -41,23 +41,23 @@ export const productModalManager = {
                     if (oldCategoryName) {
                         await dbService.renameCategory(barId, oldCategoryName, categoria);
                     } else {
-                        const isNew = !existingCategories.find(c => c.nome.toLowerCase() === categoria.toLowerCase());
-                        if (!isNew) throw new Error("Questa categoria esiste già!");
+                        const exists = existingCategories.find(c => c.nome.toLowerCase() === categoria.toLowerCase());
+                        if (exists) throw new Error("Questa categoria esiste già!");
                         
                         const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
                         await window.fb.setDoc(catRef, { nome: categoria, createdAt: Date.now() });
                     }
+                    productModal.classList.add('hidden');
+                    router.navigate('#admin/categories');
                 } else {
                     if (!nome) throw new Error("Il nome del prodotto è obbligatorio");
                     await dbService.saveProduct(barId, id, { 
                         nome, categoria, fornitore, updatedAt: Date.now() 
                     });
+                    productModal.classList.add('hidden');
+                    router.navigate('#admin/products');
                 }
-
-                productModal.classList.add('hidden');
-                ui.showToast("Operazione completata!");
-                if (onSaveCallback) onSaveCallback(categoria, isOnlyCategory);
-                
+                ui.showToast("Salvato con successo!");
             } catch (e) {
                 alert(e.message || "Errore nel salvataggio");
             } finally {
@@ -70,7 +70,7 @@ export const productModalManager = {
     },
 
     async open(barId, currentCategory = '', product = null, isEditCategory = false) {
-        this.currentBarId = barId;
+        currentBarId = barId;
         oldCategoryName = isEditCategory ? currentCategory : null;
         
         ui.showLoader();
@@ -117,8 +117,10 @@ export const productModalManager = {
             existingCategories = await dbService.getCategories(barId);
             const products = await dbService.getProducts(barId);
             const forns = [...new Set(products.map(p => p.fornitore))].sort();
+            
             selectCatQuick.innerHTML = '<option value="">-- Esistenti --</option>';
             selectFornQuick.innerHTML = '<option value="">-- Esistenti --</option>';
+            
             [...existingCategories].sort((a,b) => a.nome.localeCompare(b.nome))
                 .forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
             forns.forEach(f => selectFornQuick.add(new Option(f, f)));

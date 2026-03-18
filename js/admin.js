@@ -16,12 +16,13 @@ router.add('#admin/choice', () => renderAdminChoice());
 router.add('#admin/categories', () => renderCategoryList());
 router.add('#admin/products', () => renderProductList());
 
-productModalManager.init((newCat, isOnlyCategory) => { 
-    if (isOnlyCategory) router.navigate('#admin/categories');
-    else { currentPath.category = newCat; router.navigate('#admin/products'); }
+productModalManager.init();
+
+window.addEventListener('superadmin-success', () => { 
+    isSuperAdmin = true; 
+    router.navigate('#admin/bars'); 
 });
 
-window.addEventListener('superadmin-success', () => { isSuperAdmin = true; router.navigate('#admin/bars'); });
 window.addEventListener('admin-bar-choice', (e) => {
     isSuperAdmin = false;
     currentPath.barId = e.detail.barId;
@@ -58,10 +59,15 @@ async function renderBarList() {
     adminView.innerHTML = `<div class="list-container"></div>`;
     const bars = await dbService.getBars();
     const list = adminView.querySelector('.list-container');
+    
     bars.forEach(bar => list.appendChild(uiComponents.createListItem(
         `<span>${bar.barName || bar.id}</span>`,
-        () => { currentPath.barId = bar.id; currentPath.barName = bar.barName || "Bar"; router.navigate('#admin/categories'); },
-        () => adminActions.deleteBar(bar.id, () => router.navigate('#admin/bars'))
+        () => { 
+            currentPath.barId = bar.id; 
+            currentPath.barName = bar.barName || "Bar"; 
+            router.navigate('#admin/categories'); 
+        },
+        () => adminActions.deleteBar(bar.id)
     )));
 }
 
@@ -70,14 +76,20 @@ async function renderCategoryList() {
     updateUI();
     adminView.innerHTML = "";
     adminView.appendChild(uiComponents.createAddButton("Nuova Categoria", () => productModalManager.open(currentPath.barId)));
+    
     const list = document.createElement('div');
     list.className = "list-container";
     adminView.appendChild(list);
+
     const categorie = await dbService.getCategories(currentPath.barId);
+    
     categorie.forEach(cat => list.appendChild(uiComponents.createListItem(
         cat.nome, 
-        () => { currentPath.category = cat.nome; router.navigate('#admin/products'); },
-        () => adminActions.deleteCategory(currentPath.barId, cat.nome, () => router.navigate('#admin/categories')),
+        () => { 
+            currentPath.category = cat.nome; 
+            router.navigate('#admin/products'); 
+        },
+        () => adminActions.deleteCategory(currentPath.barId, cat.nome),
         () => productModalManager.open(currentPath.barId, cat.nome, null, true)
     )));
 }
@@ -86,14 +98,17 @@ async function renderProductList() {
     updateUI();
     adminView.innerHTML = "";
     adminView.appendChild(uiComponents.createAddButton("Nuovo Prodotto", () => productModalManager.open(currentPath.barId, currentPath.category)));
+    
     const list = document.createElement('div');
     list.className = "list-container";
     adminView.appendChild(list);
+
     const prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
+    
     prodotti.forEach(p => list.appendChild(uiComponents.createListItem(
         `<div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>`,
         null, 
-        () => adminActions.deleteProduct(currentPath.barId, p.id, () => router.navigate('#admin/products')),
+        () => adminActions.deleteProduct(currentPath.barId, p.id),
         () => productModalManager.open(currentPath.barId, currentPath.category, p)
     )));
 }

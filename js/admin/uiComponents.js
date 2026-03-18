@@ -3,6 +3,7 @@ import { getIconHTML } from '../icons.js';
 export const uiComponents = {
     createAdminChoiceMenu(onOrders, onEdit) {
         const container = document.createElement('div');
+        container.className = "admin-choice-container";
         container.style.cssText = "display:flex; flex-direction:column; gap:20px; padding:20px;";
 
         const btnOrders = document.createElement('button');
@@ -12,7 +13,7 @@ export const uiComponents = {
 
         const btnEdit = document.createElement('button');
         btnEdit.className = "btn-light btn-menu";
-        btnEdit.innerHTML = `${getIconHTML('edit')} MODIFICA PRODOTTI`;
+        btnEdit.innerHTML = `${getIconHTML('edit')} GESTISCI PRODOTTI`;
         btnEdit.onclick = onEdit;
 
         container.append(btnOrders, btnEdit);
@@ -24,6 +25,7 @@ export const uiComponents = {
         item.className = 'admin-item';
         
         const info = document.createElement('div');
+        info.className = 'item-info';
         info.innerHTML = contentHTML;
         item.appendChild(info);
 
@@ -47,13 +49,17 @@ export const uiComponents = {
         }
 
         item.appendChild(actions);
-        if(onClick) item.onclick = onClick;
+        if(onClick) {
+            item.style.cursor = "pointer";
+            item.onclick = onClick;
+        }
         return item;
     },
 
     createAddButton(label, onClick) {
         const btn = document.createElement('button');
-        btn.className = "btn-light";
+        btn.className = "btn-add-new btn-light";
+        btn.style.marginBottom = "15px";
         btn.innerHTML = `${getIconHTML('add')} ${label}`;
         btn.onclick = onClick;
         return btn;

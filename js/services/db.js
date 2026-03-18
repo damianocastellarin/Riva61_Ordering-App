@@ -21,7 +21,6 @@ export const dbService = {
     async getProducts(barId, category = null) {
         if (!barId) return [];
         const ref = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
-        
         let q;
         if (category) {
             q = window.fb.query(ref, 
@@ -31,7 +30,6 @@ export const dbService = {
         } else {
             q = window.fb.query(ref, window.fb.orderBy("createdAt", "desc"));
         }
-        
         const snap = await window.fb.getDocs(q);
         return mapDocs(snap);
     },
@@ -60,7 +58,6 @@ export const dbService = {
 
     async renameCategory(barId, oldName, newName) {
         if (oldName === newName) return;
-
         const newCatRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", newName);
         await window.fb.setDoc(newCatRef, { nome: newName, createdAt: Date.now() });
 
@@ -89,13 +86,12 @@ export const dbService = {
         const prodRef = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
         const q = window.fb.query(prodRef, window.fb.where("categoria", "==", categoryName));
         const snap = await window.fb.getDocs(q);
-        
         const deletePromises = snap.docs.map(doc => window.fb.deleteDoc(doc.ref));
         await Promise.all(deletePromises);
     },
 
     async deleteBar(barId) {
-        const ref = window.fb.doc(window.fb.doc, "users", barId);
+        const ref = window.fb.doc(window.fb.db, "users", barId);
         return await window.fb.deleteDoc(ref);
     }
 };

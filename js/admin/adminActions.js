@@ -1,14 +1,15 @@
 import { ui } from '../ui.js';
 import { dbService } from '../services/db.js';
+import { router } from '../router.js';
 
 export const adminActions = {
-    async deleteProduct(barId, productId, callback) {
+    async deleteProduct(barId, productId) {
         if (!confirm("Eliminare prodotto?")) return;
         ui.showLoader();
         try {
             await dbService.deleteProduct(barId, productId);
             ui.showToast("Prodotto eliminato");
-            if (callback) callback();
+            router.handleRoute(); 
         } catch (e) {
             alert("Errore nell'eliminazione");
         } finally {
@@ -16,13 +17,13 @@ export const adminActions = {
         }
     },
 
-    async deleteCategory(barId, categoryName, callback) {
-        if (!confirm(`ATTENZIONE: Eliminando la categoria "${categoryName}" eliminerai anche TUTTI i prodotti al suo interno. Procedere?`)) return;
+    async deleteCategory(barId, categoryName) {
+        if (!confirm(`ATTENZIONE: Eliminando "${categoryName}" cancellerai tutti i prodotti contenuti. Procedere?`)) return;
         ui.showLoader();
         try {
             await dbService.deleteCategory(barId, categoryName);
             ui.showToast("Categoria eliminata");
-            if (callback) callback();
+            router.navigate('#admin/categories');
         } catch (e) {
             alert("Errore nell'eliminazione");
         } finally {
@@ -30,15 +31,16 @@ export const adminActions = {
         }
     },
 
-    async deleteBar(barId, callback) {
-        if (!confirm("Eliminare bar e tutti i dati associati?")) return;
+    async deleteBar(barId) {
+        if (!confirm("Eliminare definitivamente questo Bar (Admin)?")) return;
         ui.showLoader();
         try {
             await dbService.deleteBar(barId);
             ui.showToast("Bar eliminato");
-            if (callback) callback();
+            router.navigate('#admin/bars');
         } catch (e) {
-            alert("Errore nell'eliminazione");
+            console.error(e);
+            alert("Errore nell'eliminazione del Bar");
         } finally {
             ui.hideLoader();
         }
