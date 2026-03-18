@@ -21,6 +21,9 @@ router.add('#riepilogo', () => summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAM
 window.addEventListener('auth-success', async (e) => {
     try {
         ui.showLoader();
+        document.getElementById('admin-content').classList.add('hidden');
+        document.getElementById('app-content').classList.remove('hidden');
+
         PRODOTTI_DATA = await dbService.getProducts(e.detail.barId);
         CATEGORIE_DINAMICHE = orderLogic.prepareCategories(PRODOTTI_DATA);
         
@@ -28,9 +31,9 @@ window.addEventListener('auth-success', async (e) => {
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
             const targetHash = state.stepIndex >= CATEGORIE_DINAMICHE.length ? '#riepilogo' : '#step';
-            router.navigate(targetHash);
+            router.replace(targetHash);
         } else {
-            router.navigate('#home');
+            router.replace('#home');
         }
     } catch (error) {
         console.error("Errore init:", error);

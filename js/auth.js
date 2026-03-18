@@ -87,7 +87,7 @@ document.addEventListener('click', async (e) => {
             ui.showLoader();
             try {
                 await window.fb.signOut(window.fb.auth);
-                window.location.reload();
+                window.location.replace(window.location.origin + window.location.pathname);
             } catch (error) {
                 console.error(error);
                 ui.hideLoader();

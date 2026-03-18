@@ -12,7 +12,7 @@ export const homeView = {
                 return;
             }
             resetState();
-            router.navigate('#step');
+            router.replace('#step');
         };
     }
 };

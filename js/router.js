@@ -14,6 +14,13 @@ export const router = {
         }
     },
 
+    replace(hash) {
+        const url = new URL(window.location);
+        url.hash = hash;
+        window.location.replace(url.href);
+        this.handleRoute();
+    },
+
     handleRoute() {
         const hash = window.location.hash || '#home';        
         const callback = this.routes[hash];

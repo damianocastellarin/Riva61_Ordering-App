@@ -20,14 +20,14 @@ productModalManager.init();
 
 window.addEventListener('superadmin-success', () => { 
     isSuperAdmin = true; 
-    router.navigate('#admin/bars'); 
+    router.replace('#admin/bars'); 
 });
 
 window.addEventListener('admin-bar-choice', (e) => {
     isSuperAdmin = false;
     currentPath.barId = e.detail.barId;
     currentPath.barName = e.detail.barName;
-    router.navigate('#admin/choice');
+    router.replace('#admin/choice');
 });
 
 const updateUI = () => {
@@ -36,9 +36,9 @@ const updateUI = () => {
         path: currentPath, 
         isSuperAdmin, 
         actions: { 
-            onGoBars: () => router.navigate('#admin/bars'), 
-            onGoHome: () => router.navigate('#admin/choice'), 
-            onGoCategories: () => router.navigate('#admin/categories') 
+            onGoBars: () => router.replace('#admin/bars'), 
+            onGoHome: () => router.replace('#admin/choice'), 
+            onGoCategories: () => router.replace('#admin/categories') 
         }
     });
 };
