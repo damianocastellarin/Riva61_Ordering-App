@@ -1,6 +1,8 @@
 import { ui } from '../ui.js';
 import { dbService } from '../services/db.js';
 import { router } from '../router.js';
+import { viewNavigator } from '../order/navigator.js';
+import { dataCache } from '../services/dataCache.js';
 
 export const adminActions = {
     async deleteProduct(barId, productId) {
@@ -8,8 +10,9 @@ export const adminActions = {
         ui.showLoader();
         try {
             await dbService.deleteProduct(barId, productId);
+            dataCache.clear();
             ui.showToast("Prodotto eliminato");
-            router.handleRoute(); 
+            router.handleRoute();
         } catch (e) {
             alert("Errore nell'eliminazione");
         } finally {
@@ -22,6 +25,7 @@ export const adminActions = {
         ui.showLoader();
         try {
             await dbService.deleteCategory(barId, categoryName);
+            dataCache.clear();
             ui.showToast("Categoria eliminata");
             router.navigate('#admin/categories');
         } catch (e) {
@@ -36,6 +40,7 @@ export const adminActions = {
         ui.showLoader();
         try {
             await dbService.deleteBar(barId);
+            dataCache.clear();
             ui.showToast("Bar eliminato");
             router.navigate('#admin/bars');
         } catch (e) {
@@ -47,8 +52,7 @@ export const adminActions = {
     },
 
     goToOrders(barId) {
-        document.getElementById('admin-content').classList.add('hidden');
-        document.getElementById('app-content').classList.remove('hidden');
+        viewNavigator.goTo('HOME');
         window.dispatchEvent(new CustomEvent('auth-success', { detail: { barId } }));
     }
 };

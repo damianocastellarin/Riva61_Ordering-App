@@ -4,13 +4,13 @@ import { uiComponents } from './admin/uiComponents.js';
 import { breadcrumbsManager } from './admin/breadcrumbs.js';
 import { adminActions } from './admin/adminActions.js';
 import { router } from './router.js';
-import { navigator } from './order/navigator.js';
+import { viewNavigator } from './order/navigator.js';
 import { ui } from './ui.js';
 
-const adminView = document.getElementById('admin-view');
+const adminView            = document.getElementById('admin-view');
 const breadcrumbsContainer = document.getElementById('breadcrumbs');
 
-const PATH_KEY = 'admin_current_path';
+const PATH_KEY     = 'admin_current_path';
 const DEFAULT_PATH = { barId: null, barName: '', category: '' };
 
 function saveCurrentPath() {
@@ -26,7 +26,7 @@ function loadCurrentPath() {
     }
 }
 
-let currentPath = loadCurrentPath();
+let currentPath  = loadCurrentPath();
 let isSuperAdmin = false;
 
 router.add('#admin/bars',       () => renderBarList());
@@ -38,27 +38,21 @@ productModalManager.init();
 
 window.addEventListener('superadmin-success', () => {
     isSuperAdmin = true;
-    currentPath = { ...DEFAULT_PATH };
+    currentPath  = { ...DEFAULT_PATH };
     saveCurrentPath();
-    document.getElementById('app-content').classList.add('hidden');
-    document.getElementById('admin-content').classList.remove('hidden');
     router.replace('#admin/bars');
-    ui.hideLoader();
 });
 
 window.addEventListener('admin-bar-choice', (e) => {
-    isSuperAdmin = false;
+    isSuperAdmin        = false;
     currentPath.barId   = e.detail.barId;
     currentPath.barName = e.detail.barName;
     saveCurrentPath();
-    document.getElementById('app-content').classList.add('hidden');
-    document.getElementById('admin-content').classList.remove('hidden');
     router.replace('#admin/choice');
-    ui.hideLoader();
 });
 
 function updateUI() {
-    navigator.goTo('ADMIN');
+    viewNavigator.goTo('ADMIN');
     breadcrumbsManager.render(breadcrumbsContainer, {
         path: currentPath,
         isSuperAdmin,
@@ -70,7 +64,7 @@ function updateUI() {
     });
 }
 
-async function renderAdminChoice() {
+function renderAdminChoice() {
     updateUI();
     adminView.innerHTML = "";
     adminView.appendChild(uiComponents.createAdminChoiceMenu(
@@ -84,13 +78,12 @@ async function renderBarList() {
     const navId = router.currentRouteId();
     try {
         isSuperAdmin = true;
-        currentPath = { ...DEFAULT_PATH };
+        currentPath  = { ...DEFAULT_PATH };
         saveCurrentPath();
         updateUI();
         adminView.innerHTML = `<div class="list-container"></div>`;
 
         const bars = await dbService.getBars();
-
         if (router.currentRouteId() !== navId) return;
 
         const list = adminView.querySelector('.list-container');
@@ -114,7 +107,6 @@ async function renderCategoryList() {
         router.replace(isSuperAdmin ? '#admin/bars' : '#admin/choice');
         return;
     }
-
     const navId = router.currentRouteId();
     try {
         currentPath.category = '';
@@ -131,7 +123,6 @@ async function renderCategoryList() {
         adminView.appendChild(list);
 
         const categorie = await dbService.getCategories(currentPath.barId);
-
         if (router.currentRouteId() !== navId) return;
 
         categorie.forEach(cat => list.appendChild(uiComponents.createListItem(
@@ -154,7 +145,6 @@ async function renderProductList() {
         router.replace(currentPath.barId ? '#admin/categories' : '#admin/bars');
         return;
     }
-
     const navId = router.currentRouteId();
     try {
         updateUI();
@@ -169,7 +159,6 @@ async function renderProductList() {
         adminView.appendChild(list);
 
         const prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
-
         if (router.currentRouteId() !== navId) return;
 
         prodotti.forEach(p => list.appendChild(uiComponents.createListItem(

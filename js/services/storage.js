@@ -10,8 +10,14 @@ export const storageService = {
     },
 
     loadOrder() {
-        const data = sessionStorage.getItem(STORAGE_KEY);
-        return data ? JSON.parse(data) : null;
+        try {
+            const data = sessionStorage.getItem(STORAGE_KEY);
+            return data ? JSON.parse(data) : null;
+        } catch (e) {
+            console.error("Dati storage corrotti, rimossi:", e);
+            sessionStorage.removeItem(STORAGE_KEY);
+            return null;
+        }
     },
 
     clearOrder() {

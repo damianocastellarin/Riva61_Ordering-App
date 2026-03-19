@@ -1,12 +1,11 @@
 import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
+import { viewNavigator } from './order/navigator.js';
+import { dataCache } from './services/dataCache.js';
 
-const loginContainer  = document.getElementById('login-container');
-const appContent      = document.getElementById('app-content');
-const adminContent    = document.getElementById('admin-content');
-const loginBtn        = document.getElementById('loginBtn');
-const togglePassword  = document.getElementById('togglePassword');
-const passwordInput   = document.getElementById('login-password');
+const loginBtn       = document.getElementById('loginBtn');
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput  = document.getElementById('login-password');
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
@@ -15,11 +14,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             const userDoc = await window.fb.getDoc(
                 window.fb.doc(window.fb.db, "users", user.uid)
             );
-
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                loginContainer.classList.add('hidden');
-
                 if (userData.role === "superadmin") {
                     window.dispatchEvent(new CustomEvent('superadmin-success'));
                 } else if (userData.role === "admin") {
@@ -40,10 +36,9 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             ui.hideLoader();
         }
     } else {
-        loginContainer.classList.remove('hidden');
-        appContent.classList.add('hidden');
-        adminContent.classList.add('hidden');
+        viewNavigator.goTo('LOGIN');
         sessionStorage.removeItem("ordine_bar_salvato");
+        dataCache.clear();
         ui.hideLoader();
     }
 });

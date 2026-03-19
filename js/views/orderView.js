@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { storageService } from "../services/storage.js";
 import { getIconHTML } from "../icons.js";
-import { navigator } from "../order/navigator.js";
+import { viewNavigator } from "../order/navigator.js";
 import { router } from "../router.js";
 
 export const orderView = {
@@ -12,7 +12,7 @@ export const orderView = {
             state.stepIndex = parseInt(stepFromUrl, 10);
         }
 
-        navigator.goTo('STEP');
+        viewNavigator.goTo('STEP');
 
         const categoriaCorrente = categorie[state.stepIndex];
         if (!categoriaCorrente) {
@@ -20,16 +20,17 @@ export const orderView = {
             return;
         }
 
-        const container = document.getElementById("prodottiContainer");
-        const catNome = document.getElementById("categoriaNome");
-        const avantiBtn = document.getElementById("avantiBtn");
+        const container   = document.getElementById("prodottiContainer");
+        const catNome     = document.getElementById("categoriaNome");
+        const avantiBtn   = document.getElementById("avantiBtn");
         const indietroBtn = document.getElementById("indietroBtn");
         const progressBar = document.getElementById("progressBar");
 
         if (catNome) catNome.textContent = categoriaCorrente.nome;
-        
-        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
-            `Riepilogo ${getIconHTML('save')}` : `Avanti`;
+
+        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1
+            ? `Riepilogo ${getIconHTML('save')}`
+            : `Avanti`;
 
         avantiBtn.onclick = () => {
             const nextStep = state.stepIndex + 1;
@@ -40,9 +41,7 @@ export const orderView = {
             }
         };
 
-        indietroBtn.onclick = () => {
-            window.history.back();
-        };
+        indietroBtn.onclick = () => window.history.back();
 
         if (progressBar) {
             const progress = ((state.stepIndex + 1) / categorie.length) * 100;
@@ -57,10 +56,10 @@ export const orderView = {
                 <label>${nomeProdotto}</label>
                 <div class="qty-controls">
                     <button class="btn-qty minus">-</button>
-                    <input type="number" 
-                           inputmode="numeric" 
+                    <input type="number"
+                           inputmode="numeric"
                            pattern="[0-9]*"
-                           value="${state.risposte[nomeProdotto] || ''}" 
+                           value="${state.risposte[nomeProdotto] || ''}"
                            placeholder="0">
                     <button class="btn-qty plus">+</button>
                 </div>
@@ -68,13 +67,10 @@ export const orderView = {
 
             const input = div.querySelector('input');
 
-            input.onfocus = () => {
-                setTimeout(() => input.select(), 50);
-            };
+            input.onfocus = () => setTimeout(() => input.select(), 50);
 
             const update = (val) => {
-                let v = parseInt(val, 10) || 0;
-                v = Math.max(0, Math.min(99, v));
+                const v = Math.max(0, Math.min(99, parseInt(val, 10) || 0));
                 state.risposte[nomeProdotto] = v;
                 input.value = v > 0 ? v : "";
                 div.classList.toggle('filled', v > 0);
@@ -82,8 +78,8 @@ export const orderView = {
             };
 
             div.querySelector('.minus').onclick = () => update((state.risposte[nomeProdotto] || 0) - 1);
-            div.querySelector('.plus').onclick = () => update((state.risposte[nomeProdotto] || 0) + 1);
-            
+            div.querySelector('.plus').onclick  = () => update((state.risposte[nomeProdotto] || 0) + 1);
+
             input.oninput = (e) => {
                 if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
                 update(e.target.value);
