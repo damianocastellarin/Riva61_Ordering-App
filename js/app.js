@@ -38,21 +38,26 @@ window.addEventListener('auth-success', async (e) => {
             dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
         }
 
-        const backup = storageService.loadOrder();
-        if (backup && CATEGORIE_DINAMICHE.length > 0) {
-            Object.assign(state, backup);
-            if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
-                router.replace('#riepilogo');
-            } else {
-                router.replace(`#step/${state.stepIndex}`);
-            }
-        } else if (skipHome && CATEGORIE_DINAMICHE.length > 0) {
+        if (skipHome && CATEGORIE_DINAMICHE.length > 0) {
+            storageService.clearOrder();
             state.stepIndex = 0;
             state.risposte  = {};
             router.replace('#step/0');
+
         } else {
-            router.replace('#home');
+            const backup = storageService.loadOrder();
+            if (backup && CATEGORIE_DINAMICHE.length > 0) {
+                Object.assign(state, backup);
+                if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+                    router.replace('#riepilogo');
+                } else {
+                    router.replace(`#step/${state.stepIndex}`);
+                }
+            } else {
+                router.replace('#home');
+            }
         }
+
     } catch (error) {
         console.error("Errore inizializzazione utente:", error);
     } finally {
