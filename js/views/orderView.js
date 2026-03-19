@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { storageService } from "../services/storage.js";
 import { getIconHTML } from "../icons.js";
-import { viewNavigator } from "../order/navigator.js";
+import { appNavigator } from "../appNavigator.js";
 import { router } from "../router.js";
 
 export const orderView = {
@@ -12,7 +12,7 @@ export const orderView = {
             state.stepIndex = parseInt(stepFromUrl, 10);
         }
 
-        viewNavigator.goTo('STEP');
+        appNavigator.goTo('STEP');
 
         const categoriaCorrente = categorie[state.stepIndex];
         if (!categoriaCorrente) {
@@ -66,7 +66,6 @@ export const orderView = {
             `;
 
             const input = div.querySelector('input');
-
             input.onfocus = () => setTimeout(() => input.select(), 50);
 
             const update = (val) => {

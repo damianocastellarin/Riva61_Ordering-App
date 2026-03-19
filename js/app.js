@@ -40,7 +40,6 @@ window.addEventListener('auth-success', async (e) => {
         }
 
         const backup = storageService.loadOrder();
-
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
             if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {

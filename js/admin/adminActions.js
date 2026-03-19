@@ -1,7 +1,6 @@
 import { ui } from '../ui.js';
 import { dbService } from '../services/db.js';
 import { router } from '../router.js';
-import { viewNavigator } from '../order/navigator.js';
 import { dataCache } from '../services/dataCache.js';
 
 export const adminActions = {
@@ -52,9 +51,10 @@ export const adminActions = {
     },
 
     goToOrders(barId) {
-        viewNavigator.goTo('HOME');
-        window.dispatchEvent(new CustomEvent('auth-success', {
-            detail: { barId, skipHome: true }
+        sessionStorage.setItem('admin_order_mode', JSON.stringify({
+            barId,
+            skipHome: true
         }));
+        window.location.replace('./index.html');
     }
 };

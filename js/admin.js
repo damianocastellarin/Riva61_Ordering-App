@@ -4,11 +4,11 @@ import { uiComponents } from './admin/uiComponents.js';
 import { breadcrumbsManager } from './admin/breadcrumbs.js';
 import { adminActions } from './admin/adminActions.js';
 import { router } from './router.js';
-import { viewNavigator } from './order/navigator.js';
 import { session } from './session.js';
 import { ui } from './ui.js';
 
 const adminView            = document.getElementById('admin-view');
+const adminContent         = document.getElementById('admin-content');
 const breadcrumbsContainer = document.getElementById('breadcrumbs');
 
 const PATH_KEY     = 'admin_current_path';
@@ -29,15 +29,11 @@ function loadCurrentPath() {
 
 let currentPath = loadCurrentPath();
 
-// Tabella permessi:
-//   #admin/bars        → solo superadmin
-//   #admin/choice      → solo admin
-//   #admin/categories  → entrambi
-//   #admin/products    → entrambi
-
 function guard(requiredRole = 'any') {
+    if (session.role === null) return false;
+
     if (!session.isAnyAdmin()) {
-        router.replace('#home');
+        window.location.replace('./index.html');
         return false;
     }
 
@@ -64,19 +60,20 @@ productModalManager.init();
 window.addEventListener('superadmin-success', () => {
     currentPath = { ...DEFAULT_PATH };
     saveCurrentPath();
+    if (adminContent) adminContent.classList.remove('hidden');
     router.replace('#admin/bars');
 });
 
 window.addEventListener('admin-bar-choice', (e) => {
-    currentPath.barId   = e.detail.barId;
-    currentPath.barName = e.detail.barName;
+    currentPath.barId    = e.detail.barId;
+    currentPath.barName  = e.detail.barName;
     currentPath.category = '';
     saveCurrentPath();
+    if (adminContent) adminContent.classList.remove('hidden');
     router.replace('#admin/choice');
 });
 
 function updateUI() {
-    viewNavigator.goTo('ADMIN');
     breadcrumbsManager.render(breadcrumbsContainer, {
         path: currentPath,
         isSuperAdmin: session.isSuperAdmin(),
@@ -90,7 +87,6 @@ function updateUI() {
 
 function renderAdminChoice() {
     if (!guard('admin')) return;
-
     updateUI();
     adminView.innerHTML = "";
     adminView.appendChild(uiComponents.createAdminChoiceMenu(
@@ -102,7 +98,6 @@ function renderAdminChoice() {
 
 async function renderBarList() {
     if (!guard('superadmin')) return;
-
     const navId = router.currentRouteId();
     try {
         currentPath = { ...DEFAULT_PATH };
@@ -131,12 +126,10 @@ async function renderBarList() {
 
 async function renderCategoryList() {
     if (!guard('any')) return;
-
     if (!currentPath.barId) {
         router.replace(session.isSuperAdmin() ? '#admin/bars' : '#admin/choice');
         return;
     }
-
     const navId = router.currentRouteId();
     try {
         currentPath.category = '';
@@ -172,12 +165,10 @@ async function renderCategoryList() {
 
 async function renderProductList() {
     if (!guard('any')) return;
-
     if (!currentPath.barId || !currentPath.category) {
         router.replace(currentPath.barId ? '#admin/categories' : '#admin/bars');
         return;
     }
-
     const navId = router.currentRouteId();
     try {
         updateUI();
@@ -204,3 +195,5 @@ async function renderProductList() {
         if (router.currentRouteId() === navId) ui.hideLoader();
     }
 }
+
+router.init();

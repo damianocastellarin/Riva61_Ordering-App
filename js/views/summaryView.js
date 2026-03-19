@@ -2,12 +2,12 @@ import { state, resetState } from "../state.js";
 import { storageService } from "../services/storage.js";
 import { orderActions } from "../order/orderActions.js";
 import { generaMessaggio } from "../orderBuilder.js";
-import { viewNavigator } from "../order/navigator.js";
+import { appNavigator } from "../appNavigator.js";
 import { router } from "../router.js";
 
 export const summaryView = {
     render(prodottiData, categorie) {
-        viewNavigator.goTo('SUMMARY');
+        appNavigator.goTo('SUMMARY');
         const messaggioFinale = document.getElementById("messaggioFinale");
         messaggioFinale.value = generaMessaggio(state.risposte, prodottiData);
 

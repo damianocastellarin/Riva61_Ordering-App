@@ -1,10 +1,10 @@
 import { router } from "../router.js";
 import { resetState } from "../state.js";
-import { viewNavigator } from "../order/navigator.js";
+import { appNavigator } from "../appNavigator.js";
 
 export const homeView = {
     render(categorieDisponibili) {
-        viewNavigator.goTo('HOME');
+        appNavigator.goTo('HOME');
         document.getElementById("startBtn").onclick = () => {
             if (categorieDisponibili.length === 0) {
                 alert("Caricamento prodotti in corso...");

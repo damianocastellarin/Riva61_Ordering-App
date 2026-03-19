@@ -1,8 +1,7 @@
 import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
-import { viewNavigator } from './order/navigator.js';
-import { dataCache } from './services/dataCache.js';
 import { session } from './session.js';
+import { dataCache } from './services/dataCache.js';
 
 const loginBtn       = document.getElementById('loginBtn');
 const togglePassword = document.getElementById('togglePassword');
@@ -18,24 +17,20 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
 
             if (userDoc.exists()) {
                 const userData = userDoc.data();
+                document.getElementById('login-container').classList.add('hidden');
 
-                if (userData.role === "superadmin") {
-                    session.set('superadmin');
-                    window.dispatchEvent(new CustomEvent('superadmin-success'));
-
-                } else if (userData.role === "admin") {
-                    session.set(
-                        'admin',
-                        userData.barId   || user.uid,
-                        userData.barName || "Il mio Bar"
-                    );
-                    window.dispatchEvent(new CustomEvent('admin-bar-choice', {
-                        detail: {
-                            barId:   session.barId,
-                            barName: session.barName
-                        }
-                    }));
-
+                if (userData.role === 'superadmin' || userData.role === 'admin') {
+                    const adminOrderRaw = sessionStorage.getItem('admin_order_mode');
+                    if (adminOrderRaw) {
+                        sessionStorage.removeItem('admin_order_mode');
+                        const { barId, skipHome } = JSON.parse(adminOrderRaw);
+                        session.set(userData.role, barId, userData.barName || "Il mio Bar");
+                        window.dispatchEvent(new CustomEvent('auth-success', {
+                            detail: { barId, skipHome }
+                        }));
+                    } else {
+                        window.location.replace('./admin.html');
+                    }
                 } else {
                     session.set('user', userData.barId);
                     window.dispatchEvent(new CustomEvent('auth-success', {
@@ -52,7 +47,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
         dataCache.clear();
         sessionStorage.removeItem("ordine_bar_salvato");
         sessionStorage.removeItem("admin_current_path");
-        viewNavigator.goTo('LOGIN');
+        document.getElementById('login-container').classList.remove('hidden');
+        document.getElementById('app-content').classList.add('hidden');
         ui.hideLoader();
     }
 });
@@ -85,7 +81,7 @@ if (togglePassword && passwordInput) {
 }
 
 document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('#logoutBtn, #logoutAdminBtn');
+    const btn = e.target.closest('#logoutBtn');
     if (btn) {
         if (confirm("Vuoi uscire dall'account?")) {
             ui.showLoader();
