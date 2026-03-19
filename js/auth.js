@@ -43,6 +43,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                         sessionStorage.removeItem('admin_order_mode');
                         const { barId, skipHome } = JSON.parse(adminOrderRaw);
                         session.set(role, barId, userData.barName || "Il mio Bar");
+                        document.getElementById('login-container')?.classList.add('hidden');
                         window.dispatchEvent(new CustomEvent('auth-success', {
                             detail: { barId, skipHome }
                         }));
@@ -80,7 +81,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     }
 });
 
-const loginBtn      = document.getElementById('loginBtn');
+const loginBtn       = document.getElementById('loginBtn');
 const togglePassword = document.getElementById('togglePassword');
 const passwordInput  = document.getElementById('login-password');
 
