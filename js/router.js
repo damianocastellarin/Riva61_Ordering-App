@@ -1,9 +1,14 @@
 export const router = {
     routes: {},
     isInitialized: false,
+    userRole: null,
 
-    add(hash, callback) {
-        this.routes[hash] = callback;
+    setUserRole(role) {
+        this.userRole = role;
+    },
+
+    add(hash, callback, requiredRole = null) {
+        this.routes[hash] = { callback, requiredRole };
     },
 
     navigate(hash) {
@@ -21,19 +26,26 @@ export const router = {
 
     handleRoute() {
         const fullHash = window.location.hash || '#home';
-
-        if (this.routes[fullHash]) {
-            this.routes[fullHash]();
-            return;
-        }
-
+        
         const parts = fullHash.split('/');
         const baseHash = parts[0];
         const param = parts.slice(1).join('/');
-        
-        const callback = this.routes[baseHash];
-        if (callback) {
-            callback(param); 
+
+        const routeConfig = this.routes[baseHash];
+
+        if (routeConfig) {
+            if (routeConfig.requiredRole) {
+                if (routeConfig.requiredRole === 'superadmin' && this.userRole !== 'superadmin') {
+                    console.warn("Accesso negato: rotta riservata al Superadmin.");
+                    return this.replace(this.userRole === 'admin' ? '#admin/choice' : '#home');
+                }
+                if (routeConfig.requiredRole === 'admin' && !['admin', 'superadmin'].includes(this.userRole)) {
+                    console.warn("Accesso negato: rotta riservata agli Admin.");
+                    return this.replace('#home');
+                }
+            }
+            
+            routeConfig.callback(param);
         } else {
             console.warn("[Router] Percorso non trovato:", fullHash);
             this.replace('#home');
@@ -43,9 +55,7 @@ export const router = {
     init() {
         if (this.isInitialized) return;
         this.isInitialized = true;
-        
         window.addEventListener('hashchange', () => this.handleRoute());
-        
         setTimeout(() => this.handleRoute(), 50);
     }
 };

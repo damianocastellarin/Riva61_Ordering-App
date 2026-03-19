@@ -12,10 +12,10 @@ const breadcrumbsContainer = document.getElementById('breadcrumbs');
 let currentPath = { barId: null, barName: '', category: '' };
 let isSuperAdmin = false;
 
-router.add('#admin/bars', () => renderBarList());
-router.add('#admin/choice', () => renderAdminChoice());
-router.add('#admin/categories', () => renderCategoryList());
-router.add('#admin/products', () => renderProductList());
+router.add('#admin/bars', () => renderBarList(), 'superadmin');
+router.add('#admin/choice', () => renderAdminChoice(), 'admin');
+router.add('#admin/categories', () => renderCategoryList(), 'admin'); 
+router.add('#admin/products', () => renderProductList(), 'admin');
 
 productModalManager.init();
 

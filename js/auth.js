@@ -1,5 +1,6 @@
 import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
+import { router } from './router.js';
 
 const loginContainer = document.getElementById('login-container');
 const appContent = document.getElementById('app-content');
@@ -16,6 +17,9 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             
             if (userDoc.exists()) {
                 const userData = userDoc.data();
+                
+                router.setUserRole(userData.role);
+                
                 loginContainer.classList.add('hidden');
                 
                 if (userData.role === "superadmin") {
@@ -40,6 +44,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             ui.hideLoader();
         }
     } else {
+        router.setUserRole(null);
         loginContainer.classList.remove('hidden');
         appContent.classList.add('hidden');
         adminContent.classList.add('hidden');
