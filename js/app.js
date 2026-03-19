@@ -2,7 +2,6 @@ import { state } from "./state.js";
 import { ui } from "./ui.js";
 import { storageService } from "./services/storage.js";
 import { dbService } from "./services/db.js";
-import { orderLogic } from "./order/orderLogic.js";
 import { router } from "./router.js";
 import { dataCache } from "./services/dataCache.js";
 
@@ -35,7 +34,7 @@ window.addEventListener('auth-success', async (e) => {
             CATEGORIE_DINAMICHE = cached.categorie;
         } else {
             PRODOTTI_DATA       = await dbService.getProducts(barId);
-            CATEGORIE_DINAMICHE = orderLogic.prepareCategories(PRODOTTI_DATA);
+            CATEGORIE_DINAMICHE = _prepareCategories(PRODOTTI_DATA);
             dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
         }
 
@@ -63,3 +62,14 @@ window.addEventListener('auth-success', async (e) => {
 });
 
 router.init();
+
+function _prepareCategories(prodottiScaricati) {
+    if (!prodottiScaricati || prodottiScaricati.length === 0) return [];
+    const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
+    return nomiCategorie.map(nomeCat => ({
+        nome: nomeCat,
+        prodotti: prodottiScaricati
+            .filter(p => p.categoria === nomeCat)
+            .map(p => p.nome)
+    }));
+}

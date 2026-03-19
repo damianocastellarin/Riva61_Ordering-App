@@ -3,9 +3,7 @@ import { getIconHTML } from './icons.js';
 import { session } from './session.js';
 import { dataCache } from './services/dataCache.js';
 
-const loginBtn       = document.getElementById('loginBtn');
-const togglePassword = document.getElementById('togglePassword');
-const passwordInput  = document.getElementById('login-password');
+const isAdminPage = window.location.pathname.endsWith('admin.html');
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
@@ -15,43 +13,76 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 window.fb.doc(window.fb.db, "users", user.uid)
             );
 
-            if (userDoc.exists()) {
-                const userData = userDoc.data();
-                document.getElementById('login-container').classList.add('hidden');
+            if (!userDoc.exists()) {
+                _redirectToLogin();
+                return;
+            }
 
-                if (userData.role === 'superadmin' || userData.role === 'admin') {
+            const userData = userDoc.data();
+            const role     = userData.role;
+
+            if (isAdminPage) {
+                if (role === 'superadmin') {
+                    session.set('superadmin');
+                    window.dispatchEvent(new CustomEvent('superadmin-success'));
+
+                } else if (role === 'admin') {
+                    session.set('admin', userData.barId || user.uid, userData.barName || "Il mio Bar");
+                    window.dispatchEvent(new CustomEvent('admin-bar-choice', {
+                        detail: { barId: session.barId, barName: session.barName }
+                    }));
+
+                } else {
+                    _redirectToLogin();
+                }
+
+            } else {
+                if (role === 'superadmin' || role === 'admin') {
                     const adminOrderRaw = sessionStorage.getItem('admin_order_mode');
                     if (adminOrderRaw) {
                         sessionStorage.removeItem('admin_order_mode');
                         const { barId, skipHome } = JSON.parse(adminOrderRaw);
-                        session.set(userData.role, barId, userData.barName || "Il mio Bar");
+                        session.set(role, barId, userData.barName || "Il mio Bar");
                         window.dispatchEvent(new CustomEvent('auth-success', {
                             detail: { barId, skipHome }
                         }));
                     } else {
                         window.location.replace('./admin.html');
                     }
+
                 } else {
                     session.set('user', userData.barId);
+                    document.getElementById('login-container')?.classList.add('hidden');
                     window.dispatchEvent(new CustomEvent('auth-success', {
                         detail: { barId: userData.barId }
                     }));
                 }
             }
+
         } catch (error) {
             console.error("Errore Auth:", error);
             ui.hideLoader();
         }
+
     } else {
         session.clear();
         dataCache.clear();
         sessionStorage.removeItem("ordine_bar_salvato");
         sessionStorage.removeItem("admin_current_path");
-        document.getElementById('login-container').classList.remove('hidden');
-        document.getElementById('app-content').classList.add('hidden');
-        ui.hideLoader();
+
+        if (isAdminPage) {
+            _redirectToLogin();
+        } else {
+            document.getElementById('login-container')?.classList.remove('hidden');
+            document.getElementById('app-content')?.classList.add('hidden');
+            ui.hideLoader();
+        }
     }
 });
+
+const loginBtn      = document.getElementById('loginBtn');
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput  = document.getElementById('login-password');
 
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
@@ -81,19 +112,26 @@ if (togglePassword && passwordInput) {
 }
 
 document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('#logoutBtn');
-    if (btn) {
-        if (confirm("Vuoi uscire dall'account?")) {
-            ui.showLoader();
-            try {
-                await window.fb.signOut(window.fb.auth);
-                window.location.replace(
-                    window.location.origin + window.location.pathname
-                );
-            } catch (error) {
-                console.error(error);
-                ui.hideLoader();
-            }
+    const btn = e.target.closest('#logoutBtn, #logoutAdminBtn');
+    if (!btn) return;
+    if (!confirm("Vuoi uscire dall'account?")) return;
+
+    ui.showLoader();
+    try {
+        await window.fb.signOut(window.fb.auth);
+        if (isAdminPage) {
+            sessionStorage.removeItem('admin_current_path');
+        } else {
+            window.location.replace(window.location.origin + window.location.pathname);
         }
+    } catch (error) {
+        console.error(error);
+        ui.hideLoader();
     }
 });
+
+function _redirectToLogin() {
+    session.clear();
+    dataCache.clear();
+    window.location.replace('./index.html');
+}

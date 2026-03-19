@@ -1,6 +1,5 @@
 import { state, resetState } from "../state.js";
 import { storageService } from "../services/storage.js";
-import { orderActions } from "../order/orderActions.js";
 import { generaMessaggio } from "../orderBuilder.js";
 import { appNavigator } from "../appNavigator.js";
 import { router } from "../router.js";
@@ -12,10 +11,10 @@ export const summaryView = {
         messaggioFinale.value = generaMessaggio(state.risposte, prodottiData);
 
         document.getElementById("whatsappBtn").onclick = () =>
-            orderActions.shareToWhatsApp(messaggioFinale.value);
+            _shareToWhatsApp(messaggioFinale.value);
 
         document.getElementById("copiaBtn").onclick = (e) =>
-            orderActions.copyToClipboard(messaggioFinale.value, e.currentTarget);
+            _copyToClipboard(messaggioFinale.value, e.currentTarget);
 
         document.getElementById("nuovoOrdineBtn").onclick = () => {
             if (!confirm("Vuoi iniziare un nuovo ordine? I dati attuali verranno persi.")) return;
@@ -27,3 +26,19 @@ export const summaryView = {
         document.getElementById("riepilogoIndietroBtn").onclick = () => window.history.back();
     }
 };
+
+function _shareToWhatsApp(text) {
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, "_blank");
+}
+
+async function _copyToClipboard(text, buttonElement) {
+    try {
+        await navigator.clipboard.writeText(text);
+        const originalHTML = buttonElement.innerHTML;
+        buttonElement.textContent = "Copiato!";
+        setTimeout(() => { buttonElement.innerHTML = originalHTML; }, 2000);
+    } catch (err) {
+        console.error("Errore nel copia:", err);
+        alert("Errore durante la copia negli appunti.");
+    }
+}
