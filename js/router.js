@@ -1,14 +1,14 @@
 export const router = {
     routes: {},
     isInitialized: false,
-    userRole: null,
+    _routeId: 0,
 
-    setUserRole(role) {
-        this.userRole = role;
+    add(hash, callback) {
+        this.routes[hash] = callback;
     },
 
-    add(hash, callback, requiredRole = null) {
-        this.routes[hash] = { callback, requiredRole };
+    currentRouteId() {
+        return this._routeId;
     },
 
     navigate(hash) {
@@ -20,32 +20,31 @@ export const router = {
     },
 
     replace(hash) {
-        window.location.replace(window.location.origin + window.location.pathname + hash);
-        this.handleRoute();
+        const newUrl = window.location.origin + window.location.pathname + hash;
+        if (window.location.href !== newUrl) {
+            window.location.replace(newUrl);
+        } else {
+            this.handleRoute();
+        }
     },
 
     handleRoute() {
+        this._routeId++;
+
         const fullHash = window.location.hash || '#home';
-        
+
+        if (this.routes[fullHash]) {
+            this.routes[fullHash]();
+            return;
+        }
+
         const parts = fullHash.split('/');
         const baseHash = parts[0];
         const param = parts.slice(1).join('/');
 
-        const routeConfig = this.routes[baseHash];
-
-        if (routeConfig) {
-            if (routeConfig.requiredRole) {
-                if (routeConfig.requiredRole === 'superadmin' && this.userRole !== 'superadmin') {
-                    console.warn("Accesso negato: rotta riservata al Superadmin.");
-                    return this.replace(this.userRole === 'admin' ? '#admin/choice' : '#home');
-                }
-                if (routeConfig.requiredRole === 'admin' && !['admin', 'superadmin'].includes(this.userRole)) {
-                    console.warn("Accesso negato: rotta riservata agli Admin.");
-                    return this.replace('#home');
-                }
-            }
-            
-            routeConfig.callback(param);
+        const callback = this.routes[baseHash];
+        if (callback) {
+            callback(param);
         } else {
             console.warn("[Router] Percorso non trovato:", fullHash);
             this.replace('#home');
@@ -55,7 +54,9 @@ export const router = {
     init() {
         if (this.isInitialized) return;
         this.isInitialized = true;
+
         window.addEventListener('hashchange', () => this.handleRoute());
+
         setTimeout(() => this.handleRoute(), 50);
     }
 };

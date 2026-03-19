@@ -1,41 +1,37 @@
 import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
-import { router } from './router.js';
 
-const loginContainer = document.getElementById('login-container');
-const appContent = document.getElementById('app-content');
-const adminContent = document.getElementById('admin-content');
-const loginBtn = document.getElementById('loginBtn');
-const togglePassword = document.getElementById('togglePassword');
-const passwordInput = document.getElementById('login-password');
+const loginContainer  = document.getElementById('login-container');
+const appContent      = document.getElementById('app-content');
+const adminContent    = document.getElementById('admin-content');
+const loginBtn        = document.getElementById('loginBtn');
+const togglePassword  = document.getElementById('togglePassword');
+const passwordInput   = document.getElementById('login-password');
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
         try {
             ui.showLoader();
-            const userDoc = await window.fb.getDoc(window.fb.doc(window.fb.db, "users", user.uid));
-            
+            const userDoc = await window.fb.getDoc(
+                window.fb.doc(window.fb.db, "users", user.uid)
+            );
+
             if (userDoc.exists()) {
                 const userData = userDoc.data();
-                
-                router.setUserRole(userData.role);
-                
                 loginContainer.classList.add('hidden');
-                
+
                 if (userData.role === "superadmin") {
                     window.dispatchEvent(new CustomEvent('superadmin-success'));
-                } 
-                else if (userData.role === "admin") {
-                    window.dispatchEvent(new CustomEvent('admin-bar-choice', { 
-                        detail: { 
-                            barId: userData.barId || user.uid, 
-                            barName: userData.barName || "Il mio Bar" 
-                        } 
+                } else if (userData.role === "admin") {
+                    window.dispatchEvent(new CustomEvent('admin-bar-choice', {
+                        detail: {
+                            barId:   userData.barId   || user.uid,
+                            barName: userData.barName || "Il mio Bar"
+                        }
                     }));
-                } 
-                else {
-                    window.dispatchEvent(new CustomEvent('auth-success', { 
-                        detail: { barId: userData.barId } 
+                } else {
+                    window.dispatchEvent(new CustomEvent('auth-success', {
+                        detail: { barId: userData.barId }
                     }));
                 }
             }
@@ -44,7 +40,6 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             ui.hideLoader();
         }
     } else {
-        router.setUserRole(null);
         loginContainer.classList.remove('hidden');
         appContent.classList.add('hidden');
         adminContent.classList.add('hidden');
@@ -55,7 +50,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
 
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
-        const email = document.getElementById('login-email').value;
+        const email    = document.getElementById('login-email').value;
         const password = document.getElementById('login-password').value;
         if (!email || !password) return;
         ui.showLoader();
@@ -87,7 +82,10 @@ document.addEventListener('click', async (e) => {
             ui.showLoader();
             try {
                 await window.fb.signOut(window.fb.auth);
-                window.location.replace(window.location.origin + window.location.pathname);
+                sessionStorage.removeItem('admin_current_path');
+                window.location.replace(
+                    window.location.origin + window.location.pathname
+                );
             } catch (error) {
                 console.error(error);
                 ui.hideLoader();
