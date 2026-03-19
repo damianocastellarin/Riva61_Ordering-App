@@ -21,13 +21,21 @@ export const router = {
 
     handleRoute() {
         const fullHash = window.location.hash || '#home';
-        const [baseHash, param] = fullHash.split('/');
+
+        if (this.routes[fullHash]) {
+            this.routes[fullHash]();
+            return;
+        }
+
+        const parts = fullHash.split('/');
+        const baseHash = parts[0];
+        const param = parts.slice(1).join('/');
         
         const callback = this.routes[baseHash];
         if (callback) {
             callback(param); 
         } else {
-            console.warn("[Router] Percorso non trovato:", baseHash);
+            console.warn("[Router] Percorso non trovato:", fullHash);
             this.replace('#home');
         }
     },

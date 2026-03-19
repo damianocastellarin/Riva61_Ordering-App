@@ -18,13 +18,11 @@ export const summaryView = {
             if (!confirm("Vuoi iniziare un nuovo ordine? I dati attuali verranno persi.")) return;
             resetState();
             storageService.clearOrder();
-            router.navigate('#home');
+            router.replace('#home');
         };
 
         document.getElementById("riepilogoIndietroBtn").onclick = () => {
-            const lastIndex = categorie.length > 0 ? categorie.length - 1 : 0;
-            state.stepIndex = lastIndex;
-            router.navigate(`#step/${lastIndex}`);
+            window.history.back();
         };
     }
 };

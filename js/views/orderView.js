@@ -27,8 +27,10 @@ export const orderView = {
         const progressBar = document.getElementById("progressBar");
 
         if (catNome) catNome.textContent = categoriaCorrente.nome;
-                avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
+        
+        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? 
             `Riepilogo ${getIconHTML('save')}` : `Avanti`;
+
         avantiBtn.onclick = () => {
             const nextStep = state.stepIndex + 1;
             if (nextStep >= categorie.length) {
@@ -37,13 +39,16 @@ export const orderView = {
                 router.navigate(`#step/${nextStep}`);
             }
         };
+
         indietroBtn.onclick = () => {
             window.history.back();
         };
+
         if (progressBar) {
             const progress = ((state.stepIndex + 1) / categorie.length) * 100;
             progressBar.style.width = `${progress}%`;
         }
+
         container.innerHTML = "";
         categoriaCorrente.prodotti.forEach(nomeProdotto => {
             const div = document.createElement("div");
@@ -52,12 +57,21 @@ export const orderView = {
                 <label>${nomeProdotto}</label>
                 <div class="qty-controls">
                     <button class="btn-qty minus">-</button>
-                    <input type="number" inputmode="numeric" value="${state.risposte[nomeProdotto] || ''}" placeholder="0">
+                    <input type="number" 
+                           inputmode="numeric" 
+                           pattern="[0-9]*"
+                           value="${state.risposte[nomeProdotto] || ''}" 
+                           placeholder="0">
                     <button class="btn-qty plus">+</button>
                 </div>
             `;
 
             const input = div.querySelector('input');
+
+            input.onfocus = () => {
+                setTimeout(() => input.select(), 50);
+            };
+
             const update = (val) => {
                 let v = parseInt(val, 10) || 0;
                 v = Math.max(0, Math.min(99, v));
@@ -69,7 +83,11 @@ export const orderView = {
 
             div.querySelector('.minus').onclick = () => update((state.risposte[nomeProdotto] || 0) - 1);
             div.querySelector('.plus').onclick = () => update((state.risposte[nomeProdotto] || 0) + 1);
-            input.oninput = (e) => update(e.target.value);
+            
+            input.oninput = (e) => {
+                if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
+                update(e.target.value);
+            };
 
             container.appendChild(div);
         });
