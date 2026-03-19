@@ -115,7 +115,6 @@
   </div>
 
   <script type="module">
-    import { ui } from "./js/ui.js"; 
     import { firebaseConfig } from "./js/constants.js";
     import { getIconHTML } from "./js/icons.js";
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -144,24 +143,6 @@
         if (saveProductBtn) saveProductBtn.innerHTML = `${getIconHTML('save')} Salva`;
         if (adminTitleHeader) adminTitleHeader.innerHTML = `${getIconHTML('admin')} Area Gestionale`;
     });
-
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) {
-      loginBtn.onclick = async () => {
-        const email = document.getElementById('login-email').value;
-        const pass = document.getElementById('login-password').value;
-        if(!email || !pass) return alert("Inserisci email e password");
-        ui.showLoader();
-        try {
-          await signInWithEmailAndPassword(auth, email, pass);
-          ui.showToast("Accesso in corso...");
-        } catch (error) {
-          console.error(error);
-          ui.hideLoader(); 
-          alert("Credenziali non valide");
-        }
-      };
-    }
   </script>
 
   <script src="js/pwa-install.js" defer></script>
@@ -173,9 +154,7 @@
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('./service-worker.js')
-          .then(reg => console.log('SW: Registrato'))
-          .catch(err => console.error('SW: Errore', err));
+        navigator.serviceWorker.register('./service-worker.js').catch(console.error);
       });
     }
   </script>
