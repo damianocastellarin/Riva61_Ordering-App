@@ -53,6 +53,8 @@ export const adminActions = {
 
     goToOrders(barId) {
         viewNavigator.goTo('HOME');
-        window.dispatchEvent(new CustomEvent('auth-success', { detail: { barId } }));
+        window.dispatchEvent(new CustomEvent('auth-success', {
+            detail: { barId, skipHome: true }
+        }));
     }
 };

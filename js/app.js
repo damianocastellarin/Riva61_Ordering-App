@@ -26,7 +26,8 @@ window.addEventListener('auth-success', async (e) => {
 
     try {
         ui.showLoader();
-        const barId = e.detail.barId;
+        const barId    = e.detail.barId;
+        const skipHome = e.detail.skipHome === true;
 
         const cached = dataCache.get(barId);
         if (cached) {
@@ -39,6 +40,7 @@ window.addEventListener('auth-success', async (e) => {
         }
 
         const backup = storageService.loadOrder();
+
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
             if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
@@ -46,6 +48,10 @@ window.addEventListener('auth-success', async (e) => {
             } else {
                 router.replace(`#step/${state.stepIndex}`);
             }
+        } else if (skipHome && CATEGORIE_DINAMICHE.length > 0) {
+            state.stepIndex = 0;
+            state.risposte  = {};
+            router.replace('#step/0');
         } else {
             router.replace('#home');
         }
