@@ -31,7 +31,7 @@ let currentPath = loadCurrentPath();
 
 // Tabella permessi:
 //   #admin/bars        → solo superadmin
-//   #admin/choice      → solo admin (non superadmin, ha il suo flusso)
+//   #admin/choice      → solo admin
 //   #admin/categories  → entrambi
 //   #admin/products    → entrambi
 
