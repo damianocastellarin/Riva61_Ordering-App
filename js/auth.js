@@ -44,6 +44,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                         const { barId, skipHome } = JSON.parse(adminOrderRaw);
                         session.set(role, barId, userData.barName || "Il mio Bar");
                         document.getElementById('login-container')?.classList.add('hidden');
+                        document.documentElement.style.visibility = '';
                         window.dispatchEvent(new CustomEvent('auth-success', {
                             detail: { barId, skipHome }
                         }));
@@ -54,6 +55,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 } else {
                     session.set('user', userData.barId);
                     document.getElementById('login-container')?.classList.add('hidden');
+                    document.documentElement.style.visibility = '';
                     window.dispatchEvent(new CustomEvent('auth-success', {
                         detail: { barId: userData.barId }
                     }));
@@ -62,6 +64,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
 
         } catch (error) {
             console.error("Errore Auth:", error);
+            document.documentElement.style.visibility = '';
             ui.hideLoader();
         }
 
@@ -74,6 +77,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
         if (isAdminPage) {
             _redirectToLogin();
         } else {
+            document.documentElement.style.visibility = '';
             document.getElementById('login-container')?.classList.remove('hidden');
             document.getElementById('app-content')?.classList.add('hidden');
             ui.hideLoader();
