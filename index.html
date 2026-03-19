@@ -10,6 +10,12 @@
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="manifest" href="manifest.json">
+
+  <script>
+    if (sessionStorage.getItem('admin_order_mode')) {
+      document.documentElement.style.visibility = 'hidden';
+    }
+  </script>
 </head>
 <body>
   <div id="update-toast" class="hidden">
@@ -67,7 +73,6 @@
   </main>
 
   <script src="js/pwa-install.js" defer></script>
-  <!-- firebase.js va prima di auth.js e app.js: setta window.fb -->
   <script type="module" src="js/firebase.js"></script>
   <script type="module" src="js/auth.js"></script>
   <script type="module" src="js/app.js"></script>
