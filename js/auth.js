@@ -2,6 +2,7 @@ import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
 import { viewNavigator } from './order/navigator.js';
 import { dataCache } from './services/dataCache.js';
+import { session } from './session.js';
 
 const loginBtn       = document.getElementById('loginBtn');
 const togglePassword = document.getElementById('togglePassword');
@@ -14,18 +15,29 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             const userDoc = await window.fb.getDoc(
                 window.fb.doc(window.fb.db, "users", user.uid)
             );
+
             if (userDoc.exists()) {
                 const userData = userDoc.data();
+
                 if (userData.role === "superadmin") {
+                    session.set('superadmin');
                     window.dispatchEvent(new CustomEvent('superadmin-success'));
+
                 } else if (userData.role === "admin") {
+                    session.set(
+                        'admin',
+                        userData.barId   || user.uid,
+                        userData.barName || "Il mio Bar"
+                    );
                     window.dispatchEvent(new CustomEvent('admin-bar-choice', {
                         detail: {
-                            barId:   userData.barId   || user.uid,
-                            barName: userData.barName || "Il mio Bar"
+                            barId:   session.barId,
+                            barName: session.barName
                         }
                     }));
+
                 } else {
+                    session.set('user', userData.barId);
                     window.dispatchEvent(new CustomEvent('auth-success', {
                         detail: { barId: userData.barId }
                     }));
@@ -36,9 +48,11 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             ui.hideLoader();
         }
     } else {
-        viewNavigator.goTo('LOGIN');
-        sessionStorage.removeItem("ordine_bar_salvato");
+        session.clear();
         dataCache.clear();
+        sessionStorage.removeItem("ordine_bar_salvato");
+        sessionStorage.removeItem("admin_current_path");
+        viewNavigator.goTo('LOGIN');
         ui.hideLoader();
     }
 });
@@ -77,7 +91,6 @@ document.addEventListener('click', async (e) => {
             ui.showLoader();
             try {
                 await window.fb.signOut(window.fb.auth);
-                sessionStorage.removeItem('admin_current_path');
                 window.location.replace(
                     window.location.origin + window.location.pathname
                 );
