@@ -2,8 +2,11 @@ import { ui } from './ui.js';
 import { getIconHTML } from './icons.js';
 import { session } from './session.js';
 import { dataCache } from './services/dataCache.js';
+import { bottomNav } from './bottomNav/bottomNav.js';
 
 const isAdminPage = window.location.pathname.endsWith('admin.html');
+
+bottomNav.init();
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     if (user) {
@@ -20,14 +23,17 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
 
             const userData = userDoc.data();
             const role     = userData.role;
+            const email    = user.email || null;
 
             if (isAdminPage) {
                 if (role === 'superadmin') {
-                    session.set('superadmin');
+                    session.set('superadmin', null, null, email);
+                    bottomNav.setup();
                     window.dispatchEvent(new CustomEvent('superadmin-success'));
 
                 } else if (role === 'admin') {
-                    session.set('admin', userData.barId || user.uid, userData.barName || "Il mio Bar");
+                    session.set('admin', userData.barId || user.uid, userData.barName || "Il mio Bar", email);
+                    bottomNav.setup();
                     window.dispatchEvent(new CustomEvent('admin-bar-choice', {
                         detail: { barId: session.barId, barName: session.barName }
                     }));
@@ -42,7 +48,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                     if (adminOrderRaw) {
                         sessionStorage.removeItem('admin_order_mode');
                         const { barId, skipHome } = JSON.parse(adminOrderRaw);
-                        session.set(role, barId, userData.barName || "Il mio Bar");
+                        session.set(role, barId, userData.barName || "Il mio Bar", email);
+                        bottomNav.setup();
                         document.getElementById('login-container')?.classList.add('hidden');
                         document.documentElement.style.visibility = '';
                         window.dispatchEvent(new CustomEvent('auth-success', {
@@ -53,7 +60,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                     }
 
                 } else {
-                    session.set('user', userData.barId);
+                    session.set('user', userData.barId, userData.barName || null, email);
+                    bottomNav.setup();
                     document.getElementById('login-container')?.classList.add('hidden');
                     document.documentElement.style.visibility = '';
                     window.dispatchEvent(new CustomEvent('auth-success', {

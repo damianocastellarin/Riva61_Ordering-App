@@ -1,0 +1,105 @@
+:root {
+    --bottom-nav-height: 60px;
+}
+
+#bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--container-max-width, 500px);
+    height: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom));
+    padding-bottom: env(safe-area-inset-bottom);
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: stretch;
+    z-index: 1000;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.08);
+}
+
+.bottom-nav-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+    color: var(--text-muted);
+    min-height: unset;
+    width: auto;
+    margin-bottom: 0;
+    padding: 8px 4px;
+    transition: color var(--transition-fast);
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bottom-nav-item:active {
+    transform: none;
+    opacity: 1;
+}
+
+.bottom-nav-item.active {
+    color: var(--primary-color);
+}
+
+.bottom-nav-icon {
+    font-size: 1.3rem;
+    line-height: 1;
+}
+
+.bottom-nav-label {
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+    letter-spacing: 0.01em;
+}
+
+.profile-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 40px 20px 20px;
+}
+
+.profile-avatar {
+    font-size: 72px;
+    color: var(--primary-color);
+    line-height: 1;
+}
+
+.profile-bar-name {
+    font-size: 1.4rem;
+    font-weight: 700;
+    text-align: center;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.profile-role-badge {
+    display: inline-block;
+    padding: 5px 16px;
+    background: var(--primary-color);
+    color: #ffffff;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
+.profile-email {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
+}
+
+.profile-actions {
+    padding: 0 0 20px;
+    width: 100%;
+}

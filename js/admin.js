@@ -5,6 +5,7 @@ import { breadcrumbsManager } from './admin/breadcrumbs.js';
 import { adminActions } from './admin/adminActions.js';
 import { router } from './router.js';
 import { session } from './session.js';
+import { getIconHTML } from './icons.js';
 import { ui } from './ui.js';
 
 const adminView            = document.getElementById('admin-view');
@@ -36,24 +37,21 @@ function guard(requiredRole = 'any') {
         window.location.replace('./index.html');
         return false;
     }
-
     if (requiredRole === 'superadmin' && !session.isSuperAdmin()) {
-        router.replace('#admin/choice');
+        router.replace('#admin/categories');
         return false;
     }
-
     if (requiredRole === 'admin' && session.isSuperAdmin()) {
         router.replace('#admin/bars');
         return false;
     }
-
     return true;
 }
 
 router.add('#admin/bars',       () => renderBarList());
-router.add('#admin/choice',     () => renderAdminChoice());
 router.add('#admin/categories', () => renderCategoryList());
 router.add('#admin/products',   () => renderProductList());
+router.add('#admin/profile',    () => renderAdminProfile());
 
 productModalManager.init();
 
@@ -61,6 +59,7 @@ window.addEventListener('superadmin-success', () => {
     currentPath = { ...DEFAULT_PATH };
     saveCurrentPath();
     if (adminContent) adminContent.classList.remove('hidden');
+    document.getElementById('logoutAdminBtn')?.classList.remove('hidden');
     router.replace('#admin/bars');
 });
 
@@ -70,30 +69,27 @@ window.addEventListener('admin-bar-choice', (e) => {
     currentPath.category = '';
     saveCurrentPath();
     if (adminContent) adminContent.classList.remove('hidden');
-    router.replace('#admin/choice');
+    router.replace('#admin/categories');
 });
 
-function updateUI() {
+window.addEventListener('bottomnav-admin-order', () => {
+    adminActions.goToOrders(session.barId);
+});
+
+function showBreadcrumbs() {
     breadcrumbsManager.render(breadcrumbsContainer, {
-        path: currentPath,
+        path:        currentPath,
         isSuperAdmin: session.isSuperAdmin(),
         actions: {
             onGoBars:       () => router.replace('#admin/bars'),
-            onGoHome:       () => router.replace('#admin/choice'),
+            onGoHome:       () => router.replace('#admin/categories'),
             onGoCategories: () => router.replace('#admin/categories')
         }
     });
 }
 
-function renderAdminChoice() {
-    if (!guard('admin')) return;
-    updateUI();
-    adminView.innerHTML = "";
-    adminView.appendChild(uiComponents.createAdminChoiceMenu(
-        () => adminActions.goToOrders(currentPath.barId),
-        () => router.navigate('#admin/categories')
-    ));
-    ui.hideLoader();
+function clearBreadcrumbs() {
+    if (breadcrumbsContainer) breadcrumbsContainer.innerHTML = '';
 }
 
 async function renderBarList() {
@@ -102,7 +98,7 @@ async function renderBarList() {
     try {
         currentPath = { ...DEFAULT_PATH };
         saveCurrentPath();
-        updateUI();
+        showBreadcrumbs();
         adminView.innerHTML = `<div class="list-container"></div>`;
 
         const bars = await dbService.getBars();
@@ -127,15 +123,15 @@ async function renderBarList() {
 async function renderCategoryList() {
     if (!guard('any')) return;
     if (!currentPath.barId) {
-        router.replace(session.isSuperAdmin() ? '#admin/bars' : '#admin/choice');
+        router.replace(session.isSuperAdmin() ? '#admin/bars' : '#admin/categories');
         return;
     }
     const navId = router.currentRouteId();
     try {
         currentPath.category = '';
         saveCurrentPath();
-        updateUI();
-        adminView.innerHTML = "";
+        showBreadcrumbs();
+        adminView.innerHTML = '';
         adminView.appendChild(uiComponents.createAddButton(
             "Nuova Categoria",
             () => productModalManager.open(currentPath.barId)
@@ -171,8 +167,8 @@ async function renderProductList() {
     }
     const navId = router.currentRouteId();
     try {
-        updateUI();
-        adminView.innerHTML = "";
+        showBreadcrumbs();
+        adminView.innerHTML = '';
         adminView.appendChild(uiComponents.createAddButton(
             "Nuovo Prodotto",
             () => productModalManager.open(currentPath.barId, currentPath.category)
@@ -194,6 +190,33 @@ async function renderProductList() {
     } finally {
         if (router.currentRouteId() === navId) ui.hideLoader();
     }
+}
+
+function renderAdminProfile() {
+    if (!guard('admin')) return;
+    clearBreadcrumbs();
+
+    const roleLabel = 'Amministratore';
+    adminView.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.innerHTML = `
+        <div class="profile-card">
+            <div class="profile-avatar">${getIconHTML('profile')}</div>
+            <h2 class="profile-bar-name">${session.barName || 'Bar'}</h2>
+            <span class="profile-role-badge">${roleLabel}</span>
+            ${session.email
+                ? `<p class="profile-email">${session.email}</p>`
+                : ''}
+        </div>
+        <div class="profile-actions">
+            <button id="logoutAdminBtn" class="btn-danger">
+                ${getIconHTML('logout')} Esci dall'account
+            </button>
+        </div>
+    `;
+    adminView.appendChild(card);
+    ui.hideLoader();
 }
 
 router.init();

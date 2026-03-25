@@ -1,4 +1,9 @@
-const ID_MAP = { HOME: 'home', STEP: 'step', SUMMARY: 'riepilogo' };
+const ID_MAP = {
+    HOME:    'home',
+    STEP:    'step',
+    SUMMARY: 'riepilogo',
+    PROFILE: 'profile'
+};
 
 export const appNavigator = {
     goTo(viewName) {

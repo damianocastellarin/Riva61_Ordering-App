@@ -2,9 +2,14 @@ export const router = {
     routes: {},
     isInitialized: false,
     _routeId: 0,
+    _onRouteChange: null,
 
     add(hash, callback) {
         this.routes[hash] = callback;
+    },
+
+    onRouteChange(callback) {
+        this._onRouteChange = callback;
     },
 
     currentRouteId() {
@@ -30,17 +35,18 @@ export const router = {
 
     handleRoute() {
         this._routeId++;
-
         const fullHash = window.location.hash || '#home';
+
+        if (this._onRouteChange) this._onRouteChange(fullHash);
 
         if (this.routes[fullHash]) {
             this.routes[fullHash]();
             return;
         }
 
-        const parts = fullHash.split('/');
+        const parts    = fullHash.split('/');
         const baseHash = parts[0];
-        const param = parts.slice(1).join('/');
+        const param    = parts.slice(1).join('/');
 
         const callback = this.routes[baseHash];
         if (callback) {
@@ -54,9 +60,7 @@ export const router = {
     init() {
         if (this.isInitialized) return;
         this.isInitialized = true;
-
         window.addEventListener('hashchange', () => this.handleRoute());
-
         setTimeout(() => this.handleRoute(), 50);
     }
 };

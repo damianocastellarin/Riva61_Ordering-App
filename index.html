@@ -9,8 +9,8 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/bottomNav.css">
   <link rel="manifest" href="manifest.json">
-
   <script>
     if (sessionStorage.getItem('admin_order_mode')) {
       document.documentElement.style.visibility = 'hidden';
@@ -30,7 +30,7 @@
   <main class="container">
     <div id="login-container">
       <h1 class="main-title">Accesso Riservato</h1>
-      <div id="login-form" style="width: 100%;">
+      <div id="login-form" style="width:100%;">
         <div class="form-group">
           <input type="email" id="login-email" class="form-control" placeholder="Email">
         </div>
@@ -47,7 +47,6 @@
       <div id="home">
         <h1 class="main-title">Ordini Bar</h1>
         <button id="startBtn" class="btn-primary">Inizia Nuovo Ordine</button>
-        <button id="logoutBtn" class="btn-danger">Esci dall'account</button>
         <button id="installBtnHome" class="btn-install btn-success hidden">Installa App</button>
       </div>
 
@@ -56,7 +55,7 @@
           <h2 id="categoriaNome" class="main-title" style="margin-bottom:0;"></h2>
           <div class="nav-buttons" style="display:flex; gap:10px;">
             <button id="indietroBtn" class="btn-secondary btn-half"></button>
-            <button id="avantiBtn" class="btn-primary btn-half"></button>
+            <button id="avantiBtn"   class="btn-primary   btn-half"></button>
           </div>
         </header>
         <div id="prodottiContainer"></div>
@@ -64,13 +63,19 @@
 
       <div id="riepilogo" class="hidden">
         <textarea id="messaggioFinale" readonly></textarea>
-        <button id="copiaBtn" class="btn-info">Copia Messaggio</button>
-        <button id="whatsappBtn" class="btn-whatsapp">Apri WhatsApp</button>
+        <button id="copiaBtn"             class="btn-info">Copia Messaggio</button>
+        <button id="whatsappBtn"          class="btn-whatsapp">Apri WhatsApp</button>
         <button id="riepilogoIndietroBtn" class="btn-light">Modifica</button>
-        <button id="nuovoOrdineBtn" class="btn-danger">Inizia Nuovo Ordine</button>
+        <button id="nuovoOrdineBtn"       class="btn-danger">Inizia Nuovo Ordine</button>
       </div>
+
+      <!-- Pagina profilo utente: contenuto iniettato da profileView.js -->
+      <div id="profile" class="hidden"></div>
     </div>
   </main>
+
+  <!-- Bottom nav: contenuto iniettato da bottomNav.js -->
+  <div id="bottom-nav" class="hidden"></div>
 
   <script src="js/pwa-install.js" defer></script>
   <script type="module" src="js/firebase.js"></script>

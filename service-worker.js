@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v2';
+const CACHE_NAME = 'ordini-cache-v19';
 
 const urlsToCache = [
     './',
@@ -6,23 +6,25 @@ const urlsToCache = [
     './admin.html',
     './styles/reset.css',
     './styles/layout.css',
+    './styles/bottomNav.css',
     './js/firebase.js',
-    './js/app.js',
     './js/auth.js',
     './js/admin.js',
-    './js/admin-auth.js',
+    './js/app.js',
     './js/ui.js',
     './js/icons.js',
-    './js/constants.js',
     './js/session.js',
     './js/state.js',
     './js/router.js',
     './js/appNavigator.js',
     './js/pwa-install.js',
+    './js/constants.js',
     './js/services/db.js',
     './js/services/storage.js',
     './js/services/dataCache.js',
-    './js/order/orderLogic.js',
+    './js/bottomNav/bottomNavConfig.js',
+    './js/bottomNav/bottomNavRenderer.js',
+    './js/bottomNav/bottomNav.js',
     './js/order/orderActions.js',
     './js/order/orderBuilder.js',
     './js/admin/uiComponents.js',
@@ -32,6 +34,7 @@ const urlsToCache = [
     './js/views/homeView.js',
     './js/views/orderView.js',
     './js/views/summaryView.js',
+    './js/views/profileView.js',
     './manifest.json',
     './assets/icons/icon-192.png',
     './assets/icons/icon-512.png'
@@ -41,14 +44,14 @@ self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
             return Promise.all(
-                urlsToCache.map(url => {
-                    return fetch(url, { cache: 'reload' })
+                urlsToCache.map(url =>
+                    fetch(url, { cache: 'reload' })
                         .then(response => {
-                            if (!response.ok) throw new Error(`Fallito download: ${url}`);
+                            if (!response.ok) throw new Error(`Fallito: ${url}`);
                             return cache.put(url, response);
                         })
-                        .catch(err => console.error("SW Install Error:", url, err));
-                })
+                        .catch(err => console.error("SW Install Error:", url, err))
+                )
             );
         })
     );
@@ -56,13 +59,13 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
     event.waitUntil(
-        caches.keys().then(cacheNames => {
-            return Promise.all(
+        caches.keys().then(cacheNames =>
+            Promise.all(
                 cacheNames
                     .filter(name => name !== CACHE_NAME)
                     .map(name => caches.delete(name))
-            );
-        })
+            )
+        )
     );
     self.clients.claim();
 });
@@ -76,13 +79,15 @@ self.addEventListener('fetch', event => {
 
     event.respondWith(
         caches.match(event.request).then(cachedResponse => {
-            const fetchPromise = fetch(event.request).then(networkResponse => {
-                if (networkResponse && networkResponse.status === 200) {
-                    const resClone = networkResponse.clone();
-                    caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
-                }
-                return networkResponse;
-            }).catch(() => cachedResponse);
+            const fetchPromise = fetch(event.request)
+                .then(networkResponse => {
+                    if (networkResponse && networkResponse.status === 200) {
+                        const resClone = networkResponse.clone();
+                        caches.open(CACHE_NAME).then(cache => cache.put(event.request, resClone));
+                    }
+                    return networkResponse;
+                })
+                .catch(() => cachedResponse);
             return cachedResponse || fetchPromise;
         })
     );

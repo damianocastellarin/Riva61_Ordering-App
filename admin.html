@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
+  <link rel="stylesheet" href="styles/bottomNav.css">
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
@@ -21,7 +22,8 @@
     <div id="admin-content" class="hidden">
       <header class="admin-header">
         <h2 id="adminTitleHeader" style="margin:0;">Area Gestionale</h2>
-        <button id="logoutAdminBtn" class="btn-danger btn-sm"></button>
+        <!-- Logout visibile solo per superadmin (mostrato da admin.js) -->
+        <button id="logoutAdminBtn" class="btn-danger btn-sm hidden"></button>
       </header>
       <div id="breadcrumbs"></div>
       <div id="admin-view"></div>
@@ -64,6 +66,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Bottom nav: contenuto iniettato da bottomNav.js -->
+  <div id="bottom-nav" class="hidden"></div>
 
   <script type="module">
     import { getIconHTML } from "./js/icons.js";
