@@ -47,13 +47,13 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                     const adminOrderRaw = sessionStorage.getItem('admin_order_mode');
                     if (adminOrderRaw) {
                         sessionStorage.removeItem('admin_order_mode');
-                        const { barId, skipHome } = JSON.parse(adminOrderRaw);
+                        const { barId } = JSON.parse(adminOrderRaw);
                         session.set(role, barId, userData.barName || "Il mio Bar", email);
                         bottomNav.setup();
                         document.getElementById('login-container')?.classList.add('hidden');
                         document.documentElement.style.visibility = '';
                         window.dispatchEvent(new CustomEvent('auth-success', {
-                            detail: { barId, skipHome }
+                            detail: { barId }
                         }));
                     } else {
                         window.location.replace('./admin.html');

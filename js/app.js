@@ -22,17 +22,8 @@ router.add('#riepilogo', ()      => summaryView.render(PRODOTTI_DATA, CATEGORIE_
 router.add('#profile',   ()      => profileView.render());
 
 window.addEventListener('bottomnav-user-order', () => {
-    const hasProgress = Object.values(state.risposte).some(v => v > 0);
-    if (hasProgress && !confirm("Hai un ordine in corso. Vuoi ricominciare da capo?")) return;
-    resetAndStart();
+    router.replace('#home');
 });
-
-function resetAndStart() {
-    storageService.clearOrder();
-    state.stepIndex = 0;
-    state.risposte  = {};
-    router.navigate('#step/0');
-}
 
 window.addEventListener('auth-success', async (e) => {
     if (isLoadingAuth) return;
@@ -40,8 +31,7 @@ window.addEventListener('auth-success', async (e) => {
 
     try {
         ui.showLoader();
-        const barId    = e.detail.barId;
-        const skipHome = e.detail.skipHome === true;
+        const barId = e.detail.barId;
 
         const cached = dataCache.get(barId);
         if (cached) {
@@ -53,24 +43,18 @@ window.addEventListener('auth-success', async (e) => {
             dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
         }
 
-        if (skipHome && CATEGORIE_DINAMICHE.length > 0) {
-            storageService.clearOrder();
-            state.stepIndex = 0;
-            state.risposte  = {};
-            router.replace('#step/0');
-        } else {
-            const backup = storageService.loadOrder();
-            if (backup && CATEGORIE_DINAMICHE.length > 0) {
-                Object.assign(state, backup);
-                if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
-                    router.replace('#riepilogo');
-                } else {
-                    router.replace(`#step/${state.stepIndex}`);
-                }
+        const backup = storageService.loadOrder();
+        if (backup && CATEGORIE_DINAMICHE.length > 0) {
+            Object.assign(state, backup);
+            if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
+                router.replace('#riepilogo');
             } else {
-                router.replace('#home');
+                router.replace(`#step/${state.stepIndex}`);
             }
+        } else {
+            router.replace('#home');
         }
+
     } catch (error) {
         console.error("Errore inizializzazione utente:", error);
     } finally {

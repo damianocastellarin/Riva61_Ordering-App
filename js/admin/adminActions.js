@@ -51,10 +51,7 @@ export const adminActions = {
     },
 
     goToOrders(barId) {
-        sessionStorage.setItem('admin_order_mode', JSON.stringify({
-            barId,
-            skipHome: true
-        }));
+        sessionStorage.setItem('admin_order_mode', JSON.stringify({ barId }));
         window.location.href = './index.html';
     }
 };
