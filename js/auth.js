@@ -51,6 +51,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                         session.set(role, barId, userData.barName || "Il mio Bar", email);
                         bottomNav.setup();
                         document.getElementById('login-container')?.classList.add('hidden');
+                        //nasconde lo spinner
+                        ui.hideLoader();
                         document.documentElement.style.visibility = '';
                         window.dispatchEvent(new CustomEvent('auth-success', {
                             detail: { barId }
