@@ -7,10 +7,19 @@ import { router } from './router.js';
 import { session } from './session.js';
 import { getIconHTML } from './icons.js';
 import { ui } from './ui.js';
+import { dataCache } from './services/dataCache.js';
+import { storageService } from './services/storage.js';
+import { state } from './state.js';
+import { homeView } from './views/homeView.js';
+import { orderView } from './views/orderView.js';
+import { summaryView } from './views/summaryView.js';
 
 const adminView            = document.getElementById('admin-view');
 const adminContent         = document.getElementById('admin-content');
 const breadcrumbsContainer = document.getElementById('breadcrumbs');
+
+let CATEGORIE_DINAMICHE = [];
+let PRODOTTI_DATA       = [];
 
 const PATH_KEY     = 'admin_current_path';
 const DEFAULT_PATH = { barId: null, barName: '', category: '' };
@@ -48,37 +57,73 @@ function guard(requiredRole = 'any') {
     return true;
 }
 
+function showAdminContent() {
+    document.getElementById('app-content')?.classList.add('hidden');
+    document.getElementById('progressContainer')?.classList.add('hidden');
+    if (adminContent) adminContent.classList.remove('hidden');
+}
+
+function showOrderContent() {
+    if (adminContent) adminContent.classList.add('hidden');
+    document.getElementById('app-content')?.classList.remove('hidden');
+}
+
 router.add('#admin/bars',       () => renderBarList());
 router.add('#admin/categories', () => renderCategoryList());
 router.add('#admin/products',   () => renderProductList());
 router.add('#admin/profile',    () => renderAdminProfile());
 
+router.add('#home',      ()      => { showOrderContent(); homeView.render(CATEGORIE_DINAMICHE); });
+router.add('#step',      (param) => { showOrderContent(); orderView.render(CATEGORIE_DINAMICHE, param); });
+router.add('#riepilogo', ()      => { showOrderContent(); summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE); });
+
+ui.initAdminButtons();
+
 productModalManager.init();
+
+async function _loadOrderData(barId) {
+    const cached = dataCache.get(barId);
+    if (cached) {
+        PRODOTTI_DATA       = cached.prodotti;
+        CATEGORIE_DINAMICHE = cached.categorie;
+        return;
+    }
+    PRODOTTI_DATA       = await dbService.getProducts(barId);
+    CATEGORIE_DINAMICHE = _prepareCategories(PRODOTTI_DATA);
+    dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
+}
 
 window.addEventListener('superadmin-success', () => {
     currentPath = { ...DEFAULT_PATH };
     saveCurrentPath();
-    if (adminContent) adminContent.classList.remove('hidden');
+    showAdminContent();
     document.getElementById('logoutAdminBtn')?.classList.remove('hidden');
     router.replace('#admin/bars');
 });
 
-window.addEventListener('admin-bar-choice', (e) => {
+window.addEventListener('admin-bar-choice', async (e) => {
     currentPath.barId    = e.detail.barId;
     currentPath.barName  = e.detail.barName;
     currentPath.category = '';
     saveCurrentPath();
-    if (adminContent) adminContent.classList.remove('hidden');
+    showAdminContent();
+
+    try {
+        await _loadOrderData(currentPath.barId);
+    } catch (err) {
+        console.error("Errore precaricamento dati ordine:", err);
+    }
+
     router.replace('#admin/categories');
 });
 
-window.addEventListener('bottomnav-admin-order', () => {
-    adminActions.goToOrders(session.barId);
+window.addEventListener('bottomnav-user-order', () => {
+    router.replace('#home');
 });
 
 function showBreadcrumbs() {
     breadcrumbsManager.render(breadcrumbsContainer, {
-        path:        currentPath,
+        path:         currentPath,
         isSuperAdmin: session.isSuperAdmin(),
         actions: {
             onGoBars:       () => router.replace('#admin/bars'),
@@ -94,6 +139,7 @@ function clearBreadcrumbs() {
 
 async function renderBarList() {
     if (!guard('superadmin')) return;
+    showAdminContent();
     const navId = router.currentRouteId();
     try {
         currentPath = { ...DEFAULT_PATH };
@@ -126,6 +172,7 @@ async function renderCategoryList() {
         router.replace(session.isSuperAdmin() ? '#admin/bars' : '#admin/categories');
         return;
     }
+    showAdminContent();
     const navId = router.currentRouteId();
     try {
         currentPath.category = '';
@@ -165,6 +212,7 @@ async function renderProductList() {
         router.replace(currentPath.barId ? '#admin/categories' : '#admin/bars');
         return;
     }
+    showAdminContent();
     const navId = router.currentRouteId();
     try {
         showBreadcrumbs();
@@ -194,17 +242,16 @@ async function renderProductList() {
 
 function renderAdminProfile() {
     if (!guard('admin')) return;
+    showAdminContent();
     clearBreadcrumbs();
 
-    const roleLabel = 'Amministratore';
     adminView.innerHTML = '';
-
     const card = document.createElement('div');
     card.innerHTML = `
         <div class="profile-card">
             <div class="profile-avatar">${getIconHTML('profile')}</div>
             <h2 class="profile-bar-name">${session.barName || 'Bar'}</h2>
-            <span class="profile-role-badge">${roleLabel}</span>
+            <span class="profile-role-badge">Amministratore</span>
             ${session.email
                 ? `<p class="profile-email">${session.email}</p>`
                 : ''}
@@ -217,6 +264,15 @@ function renderAdminProfile() {
     `;
     adminView.appendChild(card);
     ui.hideLoader();
+}
+
+function _prepareCategories(prodottiScaricati) {
+    if (!prodottiScaricati || prodottiScaricati.length === 0) return [];
+    const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
+    return nomiCategorie.map(nomeCat => ({
+        nome:     nomeCat,
+        prodotti: prodottiScaricati.filter(p => p.categoria === nomeCat).map(p => p.nome)
+    }));
 }
 
 router.init();

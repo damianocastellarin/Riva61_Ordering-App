@@ -11,11 +11,6 @@
   <link rel="stylesheet" href="styles/layout.css">
   <link rel="stylesheet" href="styles/bottomNav.css">
   <link rel="manifest" href="manifest.json">
-  <script>
-    if (sessionStorage.getItem('admin_order_mode')) {
-      document.documentElement.style.visibility = 'hidden';
-    }
-  </script>
 </head>
 <body>
   <div id="update-toast" class="hidden">
@@ -69,12 +64,10 @@
         <button id="nuovoOrdineBtn"       class="btn-danger">Inizia Nuovo Ordine</button>
       </div>
 
-      <!-- Pagina profilo utente: contenuto iniettato da profileView.js -->
       <div id="profile" class="hidden"></div>
     </div>
   </main>
 
-  <!-- Bottom nav: contenuto iniettato da bottomNav.js -->
   <div id="bottom-nav" class="hidden"></div>
 
   <script src="js/pwa-install.js" defer></script>

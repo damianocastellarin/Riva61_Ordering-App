@@ -18,16 +18,47 @@
     <button id="refresh-btn" class="btn-primary btn-sm">Aggiorna</button>
   </div>
 
+  <div id="progressContainer" class="progress-container hidden">
+    <div id="progressBar" class="progress-bar"></div>
+  </div>
+
   <main class="container">
+
+    <div id="app-content" class="hidden">
+      <div id="home">
+        <h1 class="main-title">Ordini Bar</h1>
+        <button id="startBtn" class="btn-primary">Inizia Nuovo Ordine</button>
+      </div>
+
+      <div id="step" class="hidden">
+        <header class="header">
+          <h2 id="categoriaNome" class="main-title" style="margin-bottom:0;"></h2>
+          <div class="nav-buttons" style="display:flex; gap:10px;">
+            <button id="indietroBtn" class="btn-secondary btn-half"></button>
+            <button id="avantiBtn"   class="btn-primary   btn-half"></button>
+          </div>
+        </header>
+        <div id="prodottiContainer"></div>
+      </div>
+
+      <div id="riepilogo" class="hidden">
+        <textarea id="messaggioFinale" readonly></textarea>
+        <button id="copiaBtn"             class="btn-info">Copia Messaggio</button>
+        <button id="whatsappBtn"          class="btn-whatsapp">Apri WhatsApp</button>
+        <button id="riepilogoIndietroBtn" class="btn-light">Modifica</button>
+        <button id="nuovoOrdineBtn"       class="btn-danger">Inizia Nuovo Ordine</button>
+      </div>
+    </div>
+
     <div id="admin-content" class="hidden">
       <header class="admin-header">
         <h2 id="adminTitleHeader" style="margin:0;">Area Gestionale</h2>
-        <!-- Logout visibile solo per superadmin (mostrato da admin.js) -->
         <button id="logoutAdminBtn" class="btn-danger btn-sm hidden"></button>
       </header>
       <div id="breadcrumbs"></div>
       <div id="admin-view"></div>
     </div>
+
   </main>
 
   <div id="productModal" class="modal hidden">
@@ -67,7 +98,6 @@
     </div>
   </div>
 
-  <!-- Bottom nav: contenuto iniettato da bottomNav.js -->
   <div id="bottom-nav" class="hidden"></div>
 
   <script type="module">

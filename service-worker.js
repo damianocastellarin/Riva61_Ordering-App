@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v19';
+const CACHE_NAME = 'ordini-cache-v21';
 
 const urlsToCache = [
     './',
@@ -18,14 +18,12 @@ const urlsToCache = [
     './js/router.js',
     './js/appNavigator.js',
     './js/pwa-install.js',
-    './js/constants.js',
     './js/services/db.js',
     './js/services/storage.js',
     './js/services/dataCache.js',
     './js/bottomNav/bottomNavConfig.js',
     './js/bottomNav/bottomNavRenderer.js',
     './js/bottomNav/bottomNav.js',
-    './js/order/orderActions.js',
     './js/order/orderBuilder.js',
     './js/admin/uiComponents.js',
     './js/admin/productModal.js',

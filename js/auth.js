@@ -44,28 +44,12 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
 
             } else {
                 if (role === 'superadmin' || role === 'admin') {
-                    const adminOrderRaw = sessionStorage.getItem('admin_order_mode');
-                    if (adminOrderRaw) {
-                        sessionStorage.removeItem('admin_order_mode');
-                        const { barId } = JSON.parse(adminOrderRaw);
-                        session.set(role, barId, userData.barName || "Il mio Bar", email);
-                        bottomNav.setup();
-                        document.getElementById('login-container')?.classList.add('hidden');
-                        //nasconde lo spinner
-                        ui.hideLoader();
-                        document.documentElement.style.visibility = '';
-                        window.dispatchEvent(new CustomEvent('auth-success', {
-                            detail: { barId }
-                        }));
-                    } else {
-                        window.location.replace('./admin.html');
-                    }
+                    window.location.replace('./admin.html');
 
                 } else {
                     session.set('user', userData.barId, userData.barName || null, email);
                     bottomNav.setup();
                     document.getElementById('login-container')?.classList.add('hidden');
-                    document.documentElement.style.visibility = '';
                     window.dispatchEvent(new CustomEvent('auth-success', {
                         detail: { barId: userData.barId }
                     }));
@@ -74,7 +58,6 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
 
         } catch (error) {
             console.error("Errore Auth:", error);
-            document.documentElement.style.visibility = '';
             ui.hideLoader();
         }
 
@@ -87,7 +70,6 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
         if (isAdminPage) {
             _redirectToLogin();
         } else {
-            document.documentElement.style.visibility = '';
             document.getElementById('login-container')?.classList.remove('hidden');
             document.getElementById('app-content')?.classList.add('hidden');
             ui.hideLoader();

@@ -8,9 +8,11 @@ const ID_MAP = {
 export const appNavigator = {
     goTo(viewName) {
         const appContent        = document.getElementById('app-content');
+        const adminContent      = document.getElementById('admin-content');
         const progressContainer = document.getElementById('progressContainer');
 
-        if (appContent) appContent.classList.remove('hidden');
+        if (adminContent) adminContent.classList.add('hidden');
+        if (appContent)   appContent.classList.remove('hidden');
 
         Object.values(ID_MAP).forEach(id => {
             const el = document.getElementById(id);

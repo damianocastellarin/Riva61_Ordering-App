@@ -7,9 +7,9 @@ export const bottomNavRenderer = {
 
         tabs.forEach(tab => {
             const btn = document.createElement('button');
-            btn.className  = 'bottom-nav-item';
+            btn.className     = 'bottom-nav-item';
             btn.dataset.tabId = tab.id;
-            btn.innerHTML  = `
+            btn.innerHTML     = `
                 <span class="bottom-nav-icon">${getIconHTML(tab.icon)}</span>
                 <span class="bottom-nav-label">${tab.label}</span>
             `;
@@ -19,6 +19,8 @@ export const bottomNavRenderer = {
             btn.addEventListener('click', () => {
                 if (tab.eventName) {
                     window.dispatchEvent(new CustomEvent(tab.eventName));
+                } else if (tab.url) {
+                    window.location.href = tab.url;
                 } else if (tab.hash) {
                     router.replace(tab.hash);
                 }

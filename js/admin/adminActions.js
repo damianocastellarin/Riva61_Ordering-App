@@ -48,10 +48,5 @@ export const adminActions = {
         } finally {
             ui.hideLoader();
         }
-    },
-
-    goToOrders(barId) {
-        sessionStorage.setItem('admin_order_mode', JSON.stringify({ barId }));
-        window.location.href = './index.html';
     }
 };

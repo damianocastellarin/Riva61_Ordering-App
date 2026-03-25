@@ -2,24 +2,20 @@ export const HIDDEN_ON = ['#step', '#riepilogo'];
 
 export function getTabsForRole(role) {
     const isAdminPage = window.location.pathname.endsWith('admin.html');
-
     switch (role) {
-        case 'admin':
-            return isAdminPage ? ADMIN_TABS : ADMIN_ON_INDEX_TABS;
-        case 'user':
-            return USER_TABS;
-        default:
-            return [];
+        case 'admin': return isAdminPage ? ADMIN_TABS : ADMIN_ON_INDEX_TABS;
+        case 'user':  return USER_TABS;
+        default:      return [];
     }
 }
 
 const ADMIN_TABS = [
     {
-        id:        'order',
-        icon:      'order',
-        label:     'Ordine',
-        eventName: 'bottomnav-admin-order',
-        activeOn:  []
+        id:       'order',
+        icon:     'order',
+        label:    'Ordine',
+        hash:     '#home',
+        activeOn: ['#home', '#step', '#riepilogo']
     },
     {
         id:       'products',
@@ -44,6 +40,13 @@ const ADMIN_ON_INDEX_TABS = [
         label:    'Ordine',
         hash:     '#home',
         activeOn: ['#home']
+    },
+    {
+        id:       'products',
+        icon:     'products',
+        label:    'Prodotti',
+        url:      './admin.html#admin/categories',
+        activeOn: []
     },
     {
         id:       'profile',
