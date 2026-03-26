@@ -1,14 +1,13 @@
 let deferredPrompt;
 
 const toggleInstallButtons = (show) => {
-    const btns = document.querySelectorAll('.btn-install');
-    btns.forEach(btn => {
-        if (show) btn.classList.remove('hidden');
-        else btn.classList.add('hidden');
+    document.querySelectorAll('.btn-install').forEach(btn => {
+        btn.classList.toggle('hidden', !show);
     });
 };
 
-const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+const isStandalone = window.matchMedia('(display-mode: standalone)').matches
+    || window.navigator.standalone === true;
 
 if (isStandalone) {
     toggleInstallButtons(false);
@@ -19,12 +18,9 @@ if (isStandalone) {
         toggleInstallButtons(true);
     });
 
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    const isIOS    = /iPhone|iPad|iPod/i.test(navigator.userAgent);
     const isSafari = /Safari/i.test(navigator.userAgent) && !/CriOS/i.test(navigator.userAgent);
-    
-    if (isIOS && isSafari) {
-        toggleInstallButtons(true);
-    }
+    if (isIOS && isSafari) toggleInstallButtons(true);
 }
 
 document.addEventListener('click', async (e) => {
@@ -44,3 +40,54 @@ window.addEventListener('appinstalled', () => {
     toggleInstallButtons(false);
     deferredPrompt = null;
 });
+
+let swWaitingWorker = null;
+
+const toast     = document.getElementById('update-toast');
+const refreshBtn = document.getElementById('refresh-btn');
+
+function showUpdateToast() {
+    if (toast) toast.classList.remove('hidden');
+}
+
+if (refreshBtn) {
+    refreshBtn.addEventListener('click', () => {
+        if (!swWaitingWorker) {
+            window.location.reload();
+            return;
+        }
+        swWaitingWorker.postMessage({ type: 'SKIP_WAITING' });
+    });
+}
+
+navigator.serviceWorker?.addEventListener('controllerchange', () => {
+    window.location.reload();
+});
+
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+        try {
+            const registration = await navigator.serviceWorker.register('./service-worker.js');
+
+            if (registration.waiting) {
+                swWaitingWorker = registration.waiting;
+                showUpdateToast();
+            }
+
+            registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
+
+                newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        swWaitingWorker = newWorker;
+                        showUpdateToast();
+                    }
+                });
+            });
+
+        } catch (err) {
+            console.error('Service Worker registration failed:', err);
+        }
+    });
+}

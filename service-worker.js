@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v21';
+const CACHE_NAME = 'ordini-cache-v22';
 
 const urlsToCache = [
     './',
@@ -66,6 +66,12 @@ self.addEventListener('activate', event => {
         )
     );
     self.clients.claim();
+});
+
+self.addEventListener('message', event => {
+    if (event.data?.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });
 
 self.addEventListener('fetch', event => {
