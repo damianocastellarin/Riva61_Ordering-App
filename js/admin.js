@@ -8,8 +8,6 @@ import { session } from './session.js';
 import { getIconHTML } from './icons.js';
 import { ui } from './ui.js';
 import { dataCache } from './services/dataCache.js';
-import { storageService } from './services/storage.js';
-import { state } from './state.js';
 import { homeView } from './views/homeView.js';
 import { orderView } from './views/orderView.js';
 import { summaryView } from './views/summaryView.js';
