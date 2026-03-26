@@ -39,7 +39,6 @@ let currentPath = loadCurrentPath();
 
 function guard(requiredRole = 'any') {
     if (session.role === null) return false;
-
     if (!session.isAnyAdmin()) {
         window.location.replace('./index.html');
         return false;
@@ -76,7 +75,6 @@ router.add('#step',      (param) => { showOrderContent(); orderView.render(CATEG
 router.add('#riepilogo', ()      => { showOrderContent(); summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE); });
 
 ui.initAdminButtons();
-
 productModalManager.init();
 
 async function _loadOrderData(barId) {
@@ -105,13 +103,11 @@ window.addEventListener('admin-bar-choice', async (e) => {
     currentPath.category = '';
     saveCurrentPath();
     showAdminContent();
-
     try {
         await _loadOrderData(currentPath.barId);
     } catch (err) {
         console.error("Errore precaricamento dati ordine:", err);
     }
-
     router.replace('#admin/categories');
 });
 
@@ -228,7 +224,11 @@ async function renderProductList() {
         if (router.currentRouteId() !== navId) return;
 
         prodotti.forEach(p => list.appendChild(uiComponents.createListItem(
-            `<div><b>${p.nome}</b><br><small>${p.fornitore}</small></div>`,
+            `<div>
+                <b>${p.nome}</b>
+                ${p.unita ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${p.unita}</span>` : ''}
+                <br><small>${p.fornitore}</small>
+            </div>`,
             null,
             () => adminActions.deleteProduct(currentPath.barId, p.id),
             () => productModalManager.open(currentPath.barId, currentPath.category, p)
@@ -269,7 +269,9 @@ function _prepareCategories(prodottiScaricati) {
     const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
     return nomiCategorie.map(nomeCat => ({
         nome:     nomeCat,
-        prodotti: prodottiScaricati.filter(p => p.categoria === nomeCat).map(p => p.nome)
+        prodotti: prodottiScaricati
+            .filter(p => p.categoria === nomeCat)
+            .map(p => ({ nome: p.nome, unita: p.unita || '' }))
     }));
 }
 

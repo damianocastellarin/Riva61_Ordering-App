@@ -1,4 +1,4 @@
-const CACHE_NAME = 'ordini-cache-v74';
+const CACHE_NAME = 'ordini-cache-v0';
 
 const urlsToCache = [
     './',

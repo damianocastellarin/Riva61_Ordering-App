@@ -70,6 +70,8 @@ function _prepareCategories(prodottiScaricati) {
     const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
     return nomiCategorie.map(nomeCat => ({
         nome:     nomeCat,
-        prodotti: prodottiScaricati.filter(p => p.categoria === nomeCat).map(p => p.nome)
+        prodotti: prodottiScaricati
+            .filter(p => p.categoria === nomeCat)
+            .map(p => ({ nome: p.nome, unita: p.unita || '' }))
     }));
 }

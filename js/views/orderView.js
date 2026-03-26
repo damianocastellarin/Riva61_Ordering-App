@@ -49,11 +49,19 @@ export const orderView = {
         }
 
         container.innerHTML = "";
-        categoriaCorrente.prodotti.forEach(nomeProdotto => {
+
+        categoriaCorrente.prodotti.forEach(prodotto => {
+            const { nome: nomeProdotto, unita } = prodotto;
+
             const div = document.createElement("div");
             div.className = `input-row ${state.risposte[nomeProdotto] > 0 ? 'filled' : ''}`;
             div.innerHTML = `
-                <label>${nomeProdotto}</label>
+                <label>
+                    ${nomeProdotto}
+                    ${unita
+                        ? `<span style="font-size:0.78rem; color:var(--text-muted); font-weight:400;"> · ${unita}</span>`
+                        : ''}
+                </label>
                 <div class="qty-controls">
                     <button class="btn-qty minus">-</button>
                     <input type="number"
