@@ -9,55 +9,60 @@ const isAdminPage = window.location.pathname.endsWith('admin.html');
 bottomNav.init();
 
 window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
+    ui.showLoader();
+
     if (user) {
         try {
-            ui.showLoader();
             const userDoc = await window.fb.getDoc(
                 window.fb.doc(window.fb.db, "users", user.uid)
             );
 
             if (!userDoc.exists()) {
+                console.warn("Profilo non trovato nel database");
                 _redirectToLogin();
                 return;
             }
 
             const userData = userDoc.data();
-            const role     = userData.role;
-            const email    = user.email || null;
+            const role = userData.role;
+            const email = user.email || null;
 
             if (isAdminPage) {
-                if (role === 'superadmin') {
-                    session.set('superadmin', null, null, email);
+                if (role === 'superadmin' || role === 'admin') {
+                    const barId = role === 'superadmin' ? null : (userData.barId || user.uid);
+                    const barName = userData.barName || "Il mio Bar";
+                    
+                    session.set(role, barId, barName, email);
                     bottomNav.setup();
-                    window.dispatchEvent(new CustomEvent('superadmin-success'));
-
-                } else if (role === 'admin') {
-                    session.set('admin', userData.barId || user.uid, userData.barName || "Il mio Bar", email);
-                    bottomNav.setup();
-                    window.dispatchEvent(new CustomEvent('admin-bar-choice', {
-                        detail: { barId: session.barId, barName: session.barName }
+                    
+                    const eventName = role === 'superadmin' ? 'superadmin-success' : 'admin-bar-choice';
+                    window.dispatchEvent(new CustomEvent(eventName, {
+                        detail: { barId, barName }
                     }));
-
                 } else {
                     _redirectToLogin();
+                    return;
                 }
-
             } else {
                 if (role === 'superadmin' || role === 'admin') {
                     window.location.replace('./admin.html');
-
+                    return;
                 } else {
                     session.set('user', userData.barId, userData.barName || null, email);
                     bottomNav.setup();
+                    
                     document.getElementById('login-container')?.classList.add('hidden');
+                    document.getElementById('app-content')?.classList.remove('hidden');
+                    
                     window.dispatchEvent(new CustomEvent('auth-success', {
                         detail: { barId: userData.barId }
                     }));
                 }
             }
-
         } catch (error) {
             console.error("Errore Auth:", error);
+            _redirectToLogin();
+        } finally {
             ui.hideLoader();
         }
 
@@ -70,22 +75,24 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
         if (isAdminPage) {
             _redirectToLogin();
         } else {
-            document.getElementById('login-container')?.classList.remove('hidden');
             document.getElementById('app-content')?.classList.add('hidden');
+            document.getElementById('login-container')?.classList.remove('hidden');
             ui.hideLoader();
         }
     }
 });
 
-const loginBtn       = document.getElementById('loginBtn');
+const loginBtn = document.getElementById('loginBtn');
 const togglePassword = document.getElementById('togglePassword');
-const passwordInput  = document.getElementById('login-password');
+const passwordInput = document.getElementById('login-password');
 
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
-        const email    = document.getElementById('login-email').value;
+        const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
+        
         if (!email || !password) return;
+        
         ui.showLoader();
         try {
             await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
@@ -101,8 +108,7 @@ if (togglePassword && passwordInput) {
     togglePassword.innerHTML = getIconHTML('show');
     togglePassword.addEventListener('click', function () {
         const isPassword = passwordInput.getAttribute('type') === 'password';
-        const type = isPassword ? 'text' : 'password';
-        passwordInput.setAttribute('type', type);
+        passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
         this.innerHTML = isPassword ? getIconHTML('hide') : getIconHTML('show');
         this.classList.toggle('hidden-pass');
     });
@@ -118,9 +124,8 @@ document.addEventListener('click', async (e) => {
         await window.fb.signOut(window.fb.auth);
         if (isAdminPage) {
             sessionStorage.removeItem('admin_current_path');
-        } else {
-            window.location.replace(window.location.origin + window.location.pathname);
         }
+        window.location.replace('./index.html');
     } catch (error) {
         console.error(error);
         ui.hideLoader();
@@ -128,7 +133,9 @@ document.addEventListener('click', async (e) => {
 });
 
 function _redirectToLogin() {
-    session.clear();
-    dataCache.clear();
-    window.location.replace('./index.html');
+    if (!window.location.pathname.endsWith('index.html')) {
+        window.location.replace('./index.html');
+    } else {
+        ui.hideLoader();
+    }
 }

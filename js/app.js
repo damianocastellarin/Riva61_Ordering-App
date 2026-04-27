@@ -14,6 +14,7 @@ import { profileView } from "./views/profileView.js";
 let CATEGORIE_DINAMICHE = [];
 let PRODOTTI_DATA       = [];
 let isLoadingAuth       = false;
+let isRouterInitialized = false;
 
 ui.initAdminButtons();
 
@@ -46,6 +47,12 @@ window.addEventListener('auth-success', async (e) => {
         }
 
         const backup = storageService.loadOrder();
+        
+        if (!isRouterInitialized) {
+            router.init();
+            isRouterInitialized = true;
+        }
+
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
             if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
@@ -64,8 +71,6 @@ window.addEventListener('auth-success', async (e) => {
         ui.hideLoader();
     }
 });
-
-router.init();
 
 function _prepareCategories(prodottiScaricati) {
     if (!prodottiScaricati || prodottiScaricati.length === 0) return [];

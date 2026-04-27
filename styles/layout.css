@@ -293,13 +293,16 @@ textarea {
 
 #global-loader {
     position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(255,255,255,0.7);
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background-color: #ffffff;
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 20000;
+    z-index: 99999;
+    transition: opacity 0.3s ease;
 }
 
 .spinner {
@@ -375,3 +378,8 @@ textarea {
 }
 
 .fade-out { opacity: 0; }
+
+.loader-fade {
+    opacity: 0;
+    pointer-events: none;
+}

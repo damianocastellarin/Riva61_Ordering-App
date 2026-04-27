@@ -13,6 +13,10 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <div id="global-loader">
+    <div class="spinner"></div>
+  </div>
+
   <div id="update-toast" class="hidden">
     <span>Nuova versione disponibile!</span>
     <button id="refresh-btn" class="btn-primary btn-sm">Aggiorna</button>
@@ -23,7 +27,7 @@
   </div>
 
   <main class="container">
-    <div id="login-container">
+    <div id="login-container" class="hidden">
       <h1 class="main-title">Accesso Riservato</h1>
       <div id="login-form" style="width:100%;">
         <div class="form-group">

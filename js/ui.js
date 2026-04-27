@@ -2,19 +2,17 @@ import { getIconHTML } from './icons.js';
 
 export const ui = {
     showLoader: () => {
-        let loader = document.getElementById('global-loader');
-        if (!loader) {
-            loader = document.createElement('div');
-            loader.id = 'global-loader';
-            loader.innerHTML = `<div class="spinner"></div>`;
-            document.body.appendChild(loader);
-        }
-        loader.classList.remove('hidden');
+        const loader = document.getElementById('global-loader');
+        if (loader) loader.classList.remove('hidden');
     },
 
     hideLoader: () => {
         const loader = document.getElementById('global-loader');
-        if (loader) setTimeout(() => loader.classList.add('hidden'), 150);
+        if (loader) {
+            setTimeout(() => {
+                loader.classList.add('hidden');
+            }, 300);
+        }
     },
 
     showToast: (text, duration = 2000) => {
@@ -30,10 +28,10 @@ export const ui = {
 
     initAdminButtons: () => {
         const btns = {
-            "indietroBtn":         `Indietro`,
-            "avantiBtn":           `Avanti ${getIconHTML('save')}`,
+            "indietroBtn": `Indietro`,
+            "avantiBtn": `Avanti ${getIconHTML('save')}`,
             "riepilogoIndietroBtn": `Modifica`,
-            "startBtn":            `Inizia Nuovo Ordine`
+            "startBtn": `Inizia Nuovo Ordine`
         };
         Object.entries(btns).forEach(([id, html]) => {
             const el = document.getElementById(id);

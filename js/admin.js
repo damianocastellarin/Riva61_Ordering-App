@@ -19,6 +19,7 @@ const breadcrumbsContainer = document.getElementById('breadcrumbs');
 
 let CATEGORIE_DINAMICHE = [];
 let PRODOTTI_DATA       = [];
+let isRouterInitialized = false;
 
 const PATH_KEY     = 'admin_current_path';
 const DEFAULT_PATH = { barId: null, barName: '', category: '' };
@@ -45,7 +46,7 @@ function guard(requiredRole = 'any') {
         return false;
     }
     if (requiredRole === 'superadmin' && !session.isSuperAdmin()) {
-        router.replace('#admin/categories');
+        router.replace('#home');
         return false;
     }
     if (requiredRole === 'admin' && session.isSuperAdmin()) {
@@ -91,11 +92,20 @@ async function _loadOrderData(barId) {
     dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
 }
 
+function initRouterSafe() {
+    if (!isRouterInitialized) {
+        router.init();
+        isRouterInitialized = true;
+    }
+}
+
 window.addEventListener('superadmin-success', () => {
     currentPath = { ...DEFAULT_PATH };
     saveCurrentPath();
     showAdminContent();
     document.getElementById('logoutAdminBtn')?.classList.remove('hidden');
+    
+    initRouterSafe();
     router.replace('#admin/bars');
 });
 
@@ -104,13 +114,15 @@ window.addEventListener('admin-bar-choice', async (e) => {
     currentPath.barName  = e.detail.barName;
     currentPath.category = '';
     saveCurrentPath();
-    showAdminContent();
+    
     try {
         await _loadOrderData(currentPath.barId);
+        initRouterSafe();
+        
+        router.replace('#home');
     } catch (err) {
         console.error("Errore precaricamento dati ordine:", err);
     }
-    router.replace('#admin/categories');
 });
 
 window.addEventListener('bottomnav-user-order', () => {
@@ -165,7 +177,7 @@ async function renderBarList() {
 async function renderCategoryList() {
     if (!guard('any')) return;
     if (!currentPath.barId) {
-        router.replace(session.isSuperAdmin() ? '#admin/bars' : '#admin/categories');
+        router.replace(session.isSuperAdmin() ? '#admin/bars' : '#home');
         return;
     }
     showAdminContent();
@@ -276,5 +288,3 @@ function _prepareCategories(prodottiScaricati) {
             .map(p => ({ nome: p.nome, unita: p.unita || '' }))
     }));
 }
-
-router.init();
