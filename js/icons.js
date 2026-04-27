@@ -12,6 +12,7 @@ export const ICONS = {
     order:    "fas fa-clipboard-list",
     products: "fas fa-box-open",
     profile:  "fas fa-user-circle",
+    summary:  '<i class="fas fa-list-check"></i>',
 };
 
 export function getIconHTML(iconKey) {

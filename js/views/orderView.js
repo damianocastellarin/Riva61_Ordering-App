@@ -1,8 +1,8 @@
 import { state } from "../state.js";
 import { storageService } from "../services/storage.js";
 import { getIconHTML } from "../icons.js";
-import { appNavigator } from "../appNavigator.js";
 import { router } from "../router.js";
+import { appNavigator } from "../appNavigator.js";
 
 export const orderView = {
     render(categorie, stepFromUrl) {
@@ -20,22 +20,22 @@ export const orderView = {
             return;
         }
 
-        const container   = document.getElementById("prodottiContainer");
-        const catNome     = document.getElementById("categoriaNome");
-        const avantiBtn   = document.getElementById("avantiBtn");
-        const indietroBtn = document.getElementById("indietroBtn");
-        const progressBar = document.getElementById("progressBar");
+        const prodottiContainer = document.getElementById("prodottiContainer");
+        const catNome           = document.getElementById("categoriaNome");
+        const avantiBtn         = document.getElementById("avantiBtn");
+        const indietroBtn       = document.getElementById("indietroBtn");
+        const progressBar       = document.getElementById("progressBar");
 
         if (catNome) catNome.textContent = categoriaCorrente.nome;
 
         avantiBtn.innerHTML = state.stepIndex === categorie.length - 1
-            ? `Riepilogo ${getIconHTML('save')}`
+            ? `Completa ${getIconHTML('save')}`
             : `Avanti`;
 
         avantiBtn.onclick = () => {
             const nextStep = state.stepIndex + 1;
             if (nextStep >= categorie.length) {
-                router.navigate('#riepilogo');
+                router.navigate('#order-complete');
             } else {
                 router.navigate(`#step/${nextStep}`);
             }
@@ -48,7 +48,7 @@ export const orderView = {
             progressBar.style.width = `${progress}%`;
         }
 
-        container.innerHTML = "";
+        prodottiContainer.innerHTML = "";
 
         categoriaCorrente.prodotti.forEach(prodotto => {
             const { nome: nomeProdotto, unita } = prodotto;
@@ -92,7 +92,7 @@ export const orderView = {
                 update(e.target.value);
             };
 
-            container.appendChild(div);
+            prodottiContainer.appendChild(div);
         });
     }
 };

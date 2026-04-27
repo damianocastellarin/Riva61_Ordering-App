@@ -41,12 +41,23 @@
         <div id="prodottiContainer"></div>
       </div>
 
-      <div id="riepilogo" class="hidden">
-        <textarea id="messaggioFinale" readonly></textarea>
-        <button id="copiaBtn"             class="btn-info">Copia Messaggio</button>
-        <button id="whatsappBtn"          class="btn-whatsapp">Apri WhatsApp</button>
-        <button id="riepilogoIndietroBtn" class="btn-light">Modifica</button>
-        <button id="nuovoOrdineBtn"       class="btn-danger">Inizia Nuovo Ordine</button>
+      <div id="order-complete" class="hidden">
+        <h2 class="main-title">Ordine Completato</h2>
+        <p style="text-align:center; color:var(--text-muted); margin-bottom:30px;">
+          Hai completato tutte le categorie. Cosa vuoi fare?
+        </p>
+        <button id="backToCategoriesBtn" class="btn-secondary">Torna Indietro</button>
+        <button id="goToSummaryBtn" class="btn-primary">Vai a Riepilogo</button>
+      </div>
+
+      <div id="order-summary" class="hidden">
+        <h2 class="main-title">Riepilogo Ordine</h2>
+        <div id="orderSummaryContent"></div>
+        <div id="orderSummaryActions" class="hidden">
+          <button id="copyOrderBtn" class="btn-info">Copia Messaggio</button>
+          <button id="whatsappOrderBtn" class="btn-whatsapp">Apri WhatsApp</button>
+          <button id="clearOrderBtn" class="btn-danger">Pulisci Ordine</button>
+        </div>
       </div>
     </div>
 

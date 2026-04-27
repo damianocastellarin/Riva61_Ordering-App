@@ -10,7 +10,8 @@ import { ui } from './ui.js';
 import { dataCache } from './services/dataCache.js';
 import { homeView } from './views/homeView.js';
 import { orderView } from './views/orderView.js';
-import { summaryView } from './views/summaryView.js';
+import { orderCompleteView } from './views/orderCompleteView.js';
+import { orderSummaryView } from './views/orderSummaryView.js';
 
 const adminView            = document.getElementById('admin-view');
 const adminContent         = document.getElementById('admin-content');
@@ -70,9 +71,10 @@ router.add('#admin/categories', () => renderCategoryList());
 router.add('#admin/products',   () => renderProductList());
 router.add('#admin/profile',    () => renderAdminProfile());
 
-router.add('#home',      ()      => { showOrderContent(); homeView.render(CATEGORIE_DINAMICHE); });
-router.add('#step',      (param) => { showOrderContent(); orderView.render(CATEGORIE_DINAMICHE, param); });
-router.add('#riepilogo', ()      => { showOrderContent(); summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE); });
+router.add('#home',           ()      => { showOrderContent(); homeView.render(CATEGORIE_DINAMICHE); });
+router.add('#step',           (param) => { showOrderContent(); orderView.render(CATEGORIE_DINAMICHE, param); });
+router.add('#order-complete', ()      => { showOrderContent(); orderCompleteView.render(CATEGORIE_DINAMICHE); });
+router.add('#order-summary',  ()      => { showOrderContent(); orderSummaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE); });
 
 ui.initAdminButtons();
 productModalManager.init();

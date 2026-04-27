@@ -7,7 +7,8 @@ import { dataCache } from "./services/dataCache.js";
 
 import { homeView } from "./views/homeView.js";
 import { orderView } from "./views/orderView.js";
-import { summaryView } from "./views/summaryView.js";
+import { orderCompleteView } from "./views/orderCompleteView.js";
+import { orderSummaryView } from "./views/orderSummaryView.js";
 import { profileView } from "./views/profileView.js";
 
 let CATEGORIE_DINAMICHE = [];
@@ -16,10 +17,11 @@ let isLoadingAuth       = false;
 
 ui.initAdminButtons();
 
-router.add('#home',      ()      => homeView.render(CATEGORIE_DINAMICHE));
-router.add('#step',      (param) => orderView.render(CATEGORIE_DINAMICHE, param));
-router.add('#riepilogo', ()      => summaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE));
-router.add('#profile',   ()      => profileView.render());
+router.add('#home',           ()      => homeView.render(CATEGORIE_DINAMICHE));
+router.add('#step',           (param) => orderView.render(CATEGORIE_DINAMICHE, param));
+router.add('#order-complete', ()      => orderCompleteView.render(CATEGORIE_DINAMICHE));
+router.add('#order-summary',  ()      => orderSummaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE));
+router.add('#profile',        ()      => profileView.render());
 
 window.addEventListener('bottomnav-user-order', () => {
     router.replace('#home');
@@ -47,7 +49,7 @@ window.addEventListener('auth-success', async (e) => {
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
             if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
-                router.replace('#riepilogo');
+                router.replace('#order-complete');
             } else {
                 router.replace(`#step/${state.stepIndex}`);
             }
