@@ -20,5 +20,6 @@ export const dataCache = {
         this._barId     = null;
         this._prodotti  = null;
         this._categorie = null;
+        console.log("Cache svuotata: i prossimi dati saranno scaricati dal server.");
     }
 };

@@ -6,6 +6,9 @@
   <meta name="theme-color" content="#ffffff">
   <link rel="apple-touch-icon" href="assets/icons/icon-192.png">
   <title>Gestione Ordini Bar</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="styles/reset.css">
   <link rel="stylesheet" href="styles/layout.css">
@@ -27,7 +30,7 @@
   </div>
 
   <main class="container">
-    <div id="login-container" class="hidden">
+    <div id="login-container">
       <h1 class="main-title">Accesso Riservato</h1>
       <div id="login-form" style="width:100%;">
         <div class="form-group">
@@ -51,7 +54,7 @@
 
       <div id="step" class="hidden">
         <header class="header">
-          <h2 id="categoriaNome" class="main-title" style="margin-bottom:0;"></h2>
+          <h2 id="categoriaNome" class="main-title"></h2>
           <div class="nav-buttons" style="display:flex; gap:10px;">
             <button id="indietroBtn" class="btn-secondary btn-half"></button>
             <button id="avantiBtn"   class="btn-primary   btn-half"></button>

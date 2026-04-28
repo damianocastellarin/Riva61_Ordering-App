@@ -46,15 +46,16 @@ window.addEventListener('auth-success', async (e) => {
             dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
         }
 
-        const backup = storageService.loadOrder();
-        
         if (!isRouterInitialized) {
             router.init();
             isRouterInitialized = true;
         }
 
+        const backup = storageService.loadOrder();
+        
         if (backup && CATEGORIE_DINAMICHE.length > 0) {
             Object.assign(state, backup);
+            
             if (state.stepIndex >= CATEGORIE_DINAMICHE.length) {
                 router.replace('#order-complete');
             } else {
@@ -65,7 +66,8 @@ window.addEventListener('auth-success', async (e) => {
         }
 
     } catch (error) {
-        console.error("Errore inizializzazione utente:", error);
+        console.error("Errore durante l'inizializzazione dei dati:", error);
+        alert("Si è verificato un errore nel caricamento dei prodotti.");
     } finally {
         isLoadingAuth = false;
         ui.hideLoader();
@@ -74,11 +76,17 @@ window.addEventListener('auth-success', async (e) => {
 
 function _prepareCategories(prodottiScaricati) {
     if (!prodottiScaricati || prodottiScaricati.length === 0) return [];
+    
     const nomiCategorie = [...new Set(prodottiScaricati.map(p => p.categoria))];
+    
     return nomiCategorie.map(nomeCat => ({
         nome:     nomeCat,
         prodotti: prodottiScaricati
             .filter(p => p.categoria === nomeCat)
-            .map(p => ({ nome: p.nome, unita: p.unita || '' }))
+            .map(p => ({ 
+                nome: p.nome, 
+                unita: p.unita || '',
+                fornitore: p.fornitore || ''
+            }))
     }));
 }

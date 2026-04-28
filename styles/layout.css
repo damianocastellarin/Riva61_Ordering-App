@@ -25,6 +25,10 @@
     --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
 }
 
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
 .container {
     flex: 1;
     width: 100%;
@@ -38,7 +42,15 @@
     color: var(--text-main);
 }
 
-.main-title { text-align: center; margin-bottom: 20px; }
+.main-title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-main);
+    line-height: 1.2;
+}
+
 .hidden { display: none !important; }
 
 .progress-container {
@@ -144,6 +156,7 @@ button:disabled {
     margin-bottom: 10px;
     box-shadow: var(--shadow-sm);
     border: 1px solid var(--border-color);
+    gap: 15px;
 }
 
 .input-row.filled {
@@ -156,6 +169,31 @@ input[type="number"] {
     padding: 8px 0;
     font-size: 1.1rem;
     text-align: center;
+}
+
+.product-info-label {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex-grow: 1;
+    min-width: 0; 
+}
+
+.product-info-label .product-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    overflow-wrap: break-word;
+    word-break: break-word;
+    line-height: 1.3;
+}
+
+.product-info-label .product-meta {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    font-weight: 400;
+    overflow-wrap: break-word;
+    line-height: 1.2;
 }
 
 textarea {
@@ -188,21 +226,28 @@ textarea {
     gap: 10px;
 }
 
-.select-wrapper input  { flex: 2; }
+.select-wrapper input {
+    flex: 2;
+    min-width: 0;
+}
+
 .select-wrapper select {
     flex: 1;
-    padding: 12px;
+    min-width: 120px;
+    max-width: 100%;
+    padding: 12px 8px;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     background: var(--bg-body);
+    font-size: 0.85rem;
 }
 
 .qty-controls {
     display: flex;
     align-items: center;
     gap: 5px;
+    flex-shrink: 0;
 }
-
 .btn-qty {
     width: 40px !important;
     min-height: 40px !important;
@@ -219,8 +264,9 @@ textarea {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 100dvh;
+    height: 100dvh;
     padding: 20px;
+    overflow: hidden;
 }
 
 .password-wrapper {
@@ -265,7 +311,19 @@ textarea {
     border: 1px solid var(--border-color);
 }
 
-.admin-item .actions { display: flex; gap: 5px; }
+.admin-item .item-info {
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: break-word;
+    word-break: break-word;
+}
+
+.admin-item .actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+    margin-left: 10px;
+}
 
 .modal {
     position: fixed;
@@ -382,4 +440,11 @@ textarea {
 .loader-fade {
     opacity: 0;
     pointer-events: none;
+}
+
+#orderSummaryActions {
+    background: transparent;
+    padding: 25px 0 10px;
+    margin-top: 20px;
+    border-top: 1px dashed var(--border-color);
 }

@@ -30,10 +30,12 @@ export const uiComponents = {
         }
 
         item.appendChild(actions);
+
         if (onClick) {
             item.style.cursor = "pointer";
             item.onclick = onClick;
         }
+
         return item;
     },
 

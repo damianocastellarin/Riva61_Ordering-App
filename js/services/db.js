@@ -1,3 +1,5 @@
+import { dataCache } from "./dataCache.js";
+
 const mapDocs = (snap) => snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
 export const dbService = {
@@ -57,10 +59,11 @@ export const dbService = {
                 createdAt: Date.now() 
             }, { merge: true });
 
+            let resultId;
             if (productId) {
                 const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
                 await window.fb.setDoc(ref, data, { merge: true });
-                return productId;
+                resultId = productId;
             } else {
                 const ref = window.fb.collection(window.fb.db, "bars", barId, "prodotti");
                 const res = await window.fb.addDoc(ref, { 
@@ -68,8 +71,11 @@ export const dbService = {
                     createdAt: Date.now(),
                     updatedAt: Date.now() 
                 });
-                return res.id;
+                resultId = res.id;
             }
+
+            dataCache.clear();
+            return resultId;
         } catch (e) {
             console.error("Errore saveProduct:", e);
             throw e;
@@ -93,6 +99,8 @@ export const dbService = {
 
             const oldCatRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", oldName);
             await window.fb.deleteDoc(oldCatRef);
+
+            dataCache.clear();
         } catch (e) {
             console.error("Errore renameCategory:", e);
         }
@@ -101,7 +109,9 @@ export const dbService = {
     async deleteProduct(barId, productId) {
         try {
             const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
-            return await window.fb.deleteDoc(ref);
+            await window.fb.deleteDoc(ref);
+            
+            dataCache.clear();
         } catch (e) {
             console.error("Errore deleteProduct:", e);
         }
@@ -117,6 +127,8 @@ export const dbService = {
             const snap = await window.fb.getDocs(q);
             const deletePromises = snap.docs.map(doc => window.fb.deleteDoc(doc.ref));
             await Promise.all(deletePromises);
+
+            dataCache.clear();
         } catch (e) {
             console.error("Errore deleteCategory:", e);
         }
@@ -125,7 +137,8 @@ export const dbService = {
     async deleteBar(barId) {
         try {
             const ref = window.fb.doc(window.fb.db, "users", barId);
-            return await window.fb.deleteDoc(ref);
+            await window.fb.deleteDoc(ref);
+            dataCache.clear();
         } catch (e) {
             console.error("Errore deleteBar:", e);
         }

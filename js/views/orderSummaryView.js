@@ -1,4 +1,4 @@
-import { state, resetState } from "../state.js";
+import { state, resetState, hasActiveOrder } from "../state.js";
 import { storageService } from "../services/storage.js";
 import { generaMessaggio } from "../orderBuilder.js";
 import { router } from "../router.js";
@@ -11,26 +11,30 @@ export const orderSummaryView = {
 
         if (container) container.classList.remove("hidden");
 
-        document.getElementById("home")?.classList.add("hidden");
-        document.getElementById("step")?.classList.add("hidden");
-        document.getElementById("order-complete")?.classList.add("hidden");
-        document.getElementById("profile")?.classList.add("hidden");
-        document.getElementById("admin-content")?.classList.add("hidden");
-        document.getElementById("progressContainer")?.classList.add("hidden");
+        ["home", "step", "order-complete", "profile", "admin-content", "progressContainer"]
+            .forEach(id => document.getElementById(id)?.classList.add("hidden"));
 
-        const prodottiOrdinati = prodottiData.filter(p => {
-            const qta = parseInt(state.risposte[p.nome], 10) || 0;
-            return qta > 0;
-        });
+        const prodottiOrdinati = prodottiData.filter(p => (parseInt(state.risposte[p.nome], 10) || 0) > 0);
 
         if (prodottiOrdinati.length === 0) {
             content.innerHTML = `
-                <div style="text-align:center; padding:60px 20px; color:var(--text-muted);">
-                    <p style="font-size:1.1rem;">Nessun prodotto nell'ordine</p>
-                    <p style="font-size:0.9rem; margin-top:10px;">Inizia un nuovo ordine per aggiungere prodotti</p>
+                <div style="text-align:center; padding:60px 20px;">
+                    <p style="font-size:1.1rem; color:var(--text-muted); margin-bottom:30px;">
+                        Nessun prodotto nell'ordine
+                    </p>
+                    <button id="startNewOrderBtnSummary" class="btn-primary">Inizia Nuovo Ordine</button>
                 </div>
             `;
             if (actions) actions.classList.add("hidden");
+
+            const startBtn = document.getElementById("startNewOrderBtnSummary");
+            if (startBtn) {
+                startBtn.onclick = () => {
+                    resetState();
+                    storageService.clearOrder();
+                    router.navigate('#step/0');
+                };
+            }
             return;
         }
 
@@ -43,52 +47,46 @@ export const orderSummaryView = {
         prodottiPerCategoria.forEach(cat => {
             const catHeader = document.createElement("h3");
             catHeader.textContent = cat.nome;
-            catHeader.style.cssText = "margin:20px 0 10px; font-size:1.1rem; color:var(--text-main);";
+            catHeader.style.cssText = "margin:25px 0 10px; font-size:1.15rem; color:var(--text-main); border-bottom: 1px solid var(--border-color); padding-bottom: 5px;";
             content.appendChild(catHeader);
 
             cat.prodotti.forEach(p => {
                 const qta = parseInt(state.risposte[p.nome], 10) || 0;
                 const div = document.createElement("div");
                 div.className = "input-row filled";
+                
                 div.innerHTML = `
-                    <label>
-                        ${p.nome}
-                        ${p.unita
-                            ? `<span style="font-size:0.78rem; color:var(--text-muted); font-weight:400;"> · ${p.unita}</span>`
-                            : ''}
-                    </label>
+                    <div class="product-info-label">
+                        <span class="product-name">${p.nome}</span>
+                        <div class="product-meta-row">
+                            ${p.unita ? `<span class="product-meta">${p.unita}</span>` : ''}
+                            ${p.fornitore ? `<span class="product-meta"> | ${p.fornitore}</span>` : ''}
+                        </div>
+                    </div>
                     <div class="qty-controls">
-                        <button class="btn-qty minus" data-product="${p.nome}">-</button>
-                        <input type="number"
-                               inputmode="numeric"
-                               pattern="[0-9]*"
-                               value="${qta}"
-                               data-product="${p.nome}"
-                               placeholder="0">
-                        <button class="btn-qty plus" data-product="${p.nome}">+</button>
+                        <button class="btn-qty minus">-</button>
+                        <input type="number" inputmode="numeric" pattern="[0-9]*" value="${qta}">
+                        <button class="btn-qty plus">+</button>
                     </div>
                 `;
 
                 const input = div.querySelector('input');
-                input.onfocus = () => setTimeout(() => input.select(), 50);
-
+                
                 const update = (val) => {
                     const v = Math.max(0, Math.min(99, parseInt(val, 10) || 0));
                     state.risposte[p.nome] = v;
-                    input.value = v > 0 ? v : "";
-                    div.classList.toggle('filled', v > 0);
                     storageService.saveOrder(state);
-
                     this.render(prodottiData, categorie);
                 };
 
                 div.querySelector('.minus').onclick = () => update(qta - 1);
                 div.querySelector('.plus').onclick  = () => update(qta + 1);
-
+                
                 input.oninput = (e) => {
                     if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
                     update(e.target.value);
                 };
+                input.onfocus = () => setTimeout(() => input.select(), 50);
 
                 content.appendChild(div);
             });
@@ -102,9 +100,9 @@ export const orderSummaryView = {
                 const messaggio = generaMessaggio(state.risposte, prodottiData);
                 try {
                     await navigator.clipboard.writeText(messaggio);
-                    const originalHTML = copyBtn.innerHTML;
+                    const originalText = copyBtn.textContent;
                     copyBtn.textContent = "Copiato!";
-                    setTimeout(() => { copyBtn.innerHTML = originalHTML; }, 2000);
+                    setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
                 } catch (err) {
                     console.error("Errore copia:", err);
                     alert("Errore durante la copia negli appunti.");
@@ -123,7 +121,7 @@ export const orderSummaryView = {
         const clearBtn = document.getElementById("clearOrderBtn");
         if (clearBtn) {
             clearBtn.onclick = () => {
-                if (!confirm("Vuoi davvero pulire l'ordine? Tutti i prodotti selezionati verranno rimossi.")) return;
+                if (!confirm("Vuoi davvero svuotare l'ordine attuale? Tutti i prodotti verranno rimossi.")) return;
                 resetState();
                 storageService.clearOrder();
                 this.render(prodottiData, categorie);

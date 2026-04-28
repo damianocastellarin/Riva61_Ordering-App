@@ -7,90 +7,77 @@ import { appNavigator } from "../appNavigator.js";
 export const orderView = {
     render(categorie, stepFromUrl) {
         if (!categorie || categorie.length === 0) return;
-
+        
         if (stepFromUrl !== undefined) {
             state.stepIndex = parseInt(stepFromUrl, 10);
         }
 
         appNavigator.goTo('STEP');
-
+        
         const categoriaCorrente = categorie[state.stepIndex];
-        if (!categoriaCorrente) {
-            router.replace('#home');
-            return;
+        if (!categoriaCorrente) { 
+            router.replace('#home'); 
+            return; 
         }
 
         const prodottiContainer = document.getElementById("prodottiContainer");
-        const catNome           = document.getElementById("categoriaNome");
-        const avantiBtn         = document.getElementById("avantiBtn");
-        const indietroBtn       = document.getElementById("indietroBtn");
-        const progressBar       = document.getElementById("progressBar");
+        document.getElementById("categoriaNome").textContent = categoriaCorrente.nome;
 
-        if (catNome) catNome.textContent = categoriaCorrente.nome;
-
-        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1
-            ? `Completa ${getIconHTML('save')}`
-            : `Avanti`;
-
+        const avantiBtn = document.getElementById("avantiBtn");
+        avantiBtn.innerHTML = state.stepIndex === categorie.length - 1 ? `Completa ${getIconHTML('save')}` : `Avanti`;
+        
         avantiBtn.onclick = () => {
-            const nextStep = state.stepIndex + 1;
-            if (nextStep >= categorie.length) {
-                router.navigate('#order-complete');
-            } else {
-                router.navigate(`#step/${nextStep}`);
-            }
+            const next = state.stepIndex + 1;
+            router.navigate(next >= categorie.length ? '#order-complete' : `#step/${next}`);
         };
 
-        indietroBtn.onclick = () => window.history.back();
-
+        document.getElementById("indietroBtn").onclick = () => window.history.back();
+        
+        const progressBar = document.getElementById("progressBar");
         if (progressBar) {
-            const progress = ((state.stepIndex + 1) / categorie.length) * 100;
-            progressBar.style.width = `${progress}%`;
+            progressBar.style.width = `${((state.stepIndex + 1) / categorie.length) * 100}%`;
         }
 
         prodottiContainer.innerHTML = "";
-
-        categoriaCorrente.prodotti.forEach(prodotto => {
-            const { nome: nomeProdotto, unita } = prodotto;
-
+        
+        categoriaCorrente.prodotti.forEach(p => {
+            const qta = state.risposte[p.nome] || 0;
             const div = document.createElement("div");
-            div.className = `input-row ${state.risposte[nomeProdotto] > 0 ? 'filled' : ''}`;
+            div.className = `input-row ${qta > 0 ? 'filled' : ''}`;
+            
             div.innerHTML = `
-                <label>
-                    ${nomeProdotto}
-                    ${unita
-                        ? `<span style="font-size:0.78rem; color:var(--text-muted); font-weight:400;"> · ${unita}</span>`
-                        : ''}
-                </label>
+                <div class="product-info-label">
+                    <span class="product-name">${p.nome}</span>
+                    <div class="product-meta-row">
+                        ${p.unita ? `<span class="product-meta">${p.unita}</span>` : ''}
+                        ${p.fornitore ? `<span class="product-meta"> | ${p.fornitore}</span>` : ''}
+                    </div>
+                </div>
                 <div class="qty-controls">
                     <button class="btn-qty minus">-</button>
-                    <input type="number"
-                           inputmode="numeric"
-                           pattern="[0-9]*"
-                           value="${state.risposte[nomeProdotto] || ''}"
-                           placeholder="0">
+                    <input type="number" inputmode="numeric" pattern="[0-9]*" value="${qta || ''}" placeholder="0">
                     <button class="btn-qty plus">+</button>
                 </div>
             `;
 
             const input = div.querySelector('input');
-            input.onfocus = () => setTimeout(() => input.select(), 50);
-
+            
             const update = (val) => {
                 const v = Math.max(0, Math.min(99, parseInt(val, 10) || 0));
-                state.risposte[nomeProdotto] = v;
+                state.risposte[p.nome] = v;
                 input.value = v > 0 ? v : "";
                 div.classList.toggle('filled', v > 0);
                 storageService.saveOrder(state);
             };
 
-            div.querySelector('.minus').onclick = () => update((state.risposte[nomeProdotto] || 0) - 1);
-            div.querySelector('.plus').onclick  = () => update((state.risposte[nomeProdotto] || 0) + 1);
-
+            div.querySelector('.minus').onclick = () => update((state.risposte[p.nome] || 0) - 1);
+            div.querySelector('.plus').onclick  = () => update((state.risposte[p.nome] || 0) + 1);
+            
             input.oninput = (e) => {
                 if (e.target.value.length > 2) e.target.value = e.target.value.slice(0, 2);
                 update(e.target.value);
             };
+            input.onfocus = () => setTimeout(() => input.select(), 50);
 
             prodottiContainer.appendChild(div);
         });

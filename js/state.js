@@ -8,3 +8,7 @@ export function resetState() {
   state.risposte = {};
   sessionStorage.removeItem("ordine_bar_salvato");
 }
+
+export function hasActiveOrder() {
+  return Object.values(state.risposte).some(qta => qta > 0);
+}
