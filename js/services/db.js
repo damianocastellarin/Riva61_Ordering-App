@@ -12,7 +12,6 @@ export const dbService = {
             const snap = await window.fb.getDocs(q);
             return mapDocs(snap);
         } catch (e) {
-            console.error("Errore getBars:", e);
             return [];
         }
     },
@@ -25,7 +24,6 @@ export const dbService = {
             const snap = await window.fb.getDocs(q);
             return mapDocs(snap);
         } catch (e) {
-            console.error("Errore getCategories:", e);
             return [];
         }
     },
@@ -46,7 +44,6 @@ export const dbService = {
             const snap = await window.fb.getDocs(q);
             return mapDocs(snap);
         } catch (e) {
-            console.error("Errore getProducts:", e);
             return [];
         }
     },
@@ -77,7 +74,6 @@ export const dbService = {
             dataCache.clear();
             return resultId;
         } catch (e) {
-            console.error("Errore saveProduct:", e);
             throw e;
         }
     },
@@ -102,7 +98,6 @@ export const dbService = {
 
             dataCache.clear();
         } catch (e) {
-            console.error("Errore renameCategory:", e);
         }
     },
 
@@ -110,10 +105,8 @@ export const dbService = {
         try {
             const ref = window.fb.doc(window.fb.db, "bars", barId, "prodotti", productId);
             await window.fb.deleteDoc(ref);
-            
             dataCache.clear();
         } catch (e) {
-            console.error("Errore deleteProduct:", e);
         }
     },
 
@@ -130,7 +123,6 @@ export const dbService = {
 
             dataCache.clear();
         } catch (e) {
-            console.error("Errore deleteCategory:", e);
         }
     },
 
@@ -140,7 +132,6 @@ export const dbService = {
             await window.fb.deleteDoc(ref);
             dataCache.clear();
         } catch (e) {
-            console.error("Errore deleteBar:", e);
         }
     }
 };

@@ -43,7 +43,6 @@ export const adminActions = {
             ui.showToast("Bar eliminato");
             router.navigate('#admin/bars');
         } catch (e) {
-            console.error(e);
             alert("Errore nell'eliminazione del Bar");
         } finally {
             ui.hideLoader();

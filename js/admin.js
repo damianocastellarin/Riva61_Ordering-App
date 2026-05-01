@@ -118,7 +118,6 @@ window.addEventListener('admin-bar-choice', async (e) => {
         
         router.replace('#order-summary');
     } catch (err) {
-        console.error("Errore precaricamento dati ordine:", err);
     }
 });
 

@@ -5,7 +5,6 @@ export const storageService = {
         try {
             sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         } catch (e) {
-            console.error("Errore nel salvataggio storage:", e);
         }
     },
 
@@ -14,7 +13,6 @@ export const storageService = {
             const data = sessionStorage.getItem(STORAGE_KEY);
             return data ? JSON.parse(data) : null;
         } catch (e) {
-            console.error("Dati storage corrotti, rimossi:", e);
             sessionStorage.removeItem(STORAGE_KEY);
             return null;
         }

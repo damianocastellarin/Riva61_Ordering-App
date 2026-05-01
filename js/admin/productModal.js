@@ -220,7 +220,6 @@ export const productModalManager = {
 
             forns.forEach(f => selectFornQuick.add(new Option(f, f)));
         } catch (e) {
-            console.error(e);
         }
     }
 };

@@ -36,9 +36,8 @@ async function _copyToClipboard(text, buttonElement) {
         await navigator.clipboard.writeText(text);
         const originalHTML = buttonElement.innerHTML;
         buttonElement.textContent = "Copiato!";
-        setTimeout(() => { buttonElement.innerHTML = originalHTML; }, 2000);
+        setTimeout(() => { buttonElement.innerHTML = originalHTML; }, 1500);
     } catch (err) {
-        console.error("Errore nel copia:", err);
         alert("Errore durante la copia negli appunti.");
     }
 }

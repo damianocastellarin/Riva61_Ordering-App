@@ -24,7 +24,7 @@ const urlsToCache = [
     './js/bottomNav/bottomNavConfig.js',
     './js/bottomNav/bottomNavRenderer.js',
     './js/bottomNav/bottomNav.js',
-    './js/order/orderBuilder.js',
+    './js/orderBuilder.js',
     './js/admin/uiComponents.js',
     './js/admin/productModal.js',
     './js/admin/breadcrumbs.js',
@@ -45,10 +45,9 @@ self.addEventListener('install', event => {
                 urlsToCache.map(url =>
                     fetch(url, { cache: 'reload' })
                         .then(response => {
-                            if (!response.ok) throw new Error(`Fallito: ${url}`);
+                            if (!response.ok) throw new Error();
                             return cache.put(url, response);
                         })
-                        .catch(err => console.error("SW Install Error:", url, err))
                 )
             );
         })

@@ -66,14 +66,14 @@ navigator.serviceWorker?.addEventListener('controllerchange', () => {
 
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', async () => {
-        try {
-            const registration = await navigator.serviceWorker.register('./service-worker.js');
+        const registration = await navigator.serviceWorker.register('./service-worker.js').catch(() => {});
 
-            if (registration.waiting) {
-                swWaitingWorker = registration.waiting;
-                showUpdateToast();
-            }
+        if (registration && registration.waiting) {
+            swWaitingWorker = registration.waiting;
+            showUpdateToast();
+        }
 
+        if (registration) {
             registration.addEventListener('updatefound', () => {
                 const newWorker = registration.installing;
                 if (!newWorker) return;
@@ -85,9 +85,6 @@ if ('serviceWorker' in navigator) {
                     }
                 });
             });
-
-        } catch (err) {
-            console.error('Service Worker registration failed:', err);
         }
     });
 }

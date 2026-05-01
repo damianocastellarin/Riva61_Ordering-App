@@ -102,9 +102,8 @@ export const orderSummaryView = {
                     await navigator.clipboard.writeText(messaggio);
                     const originalText = copyBtn.textContent;
                     copyBtn.textContent = "Copiato!";
-                    setTimeout(() => { copyBtn.textContent = originalText; }, 2000);
+                    setTimeout(() => { copyBtn.textContent = originalText; }, 1500);
                 } catch (err) {
-                    console.error("Errore copia:", err);
                     alert("Errore durante la copia negli appunti.");
                 }
             };

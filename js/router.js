@@ -52,7 +52,6 @@ export const router = {
         if (callback) {
             callback(param);
         } else {
-            console.warn("[Router] Percorso non trovato:", fullHash);
             this.replace('#home');
         }
     },

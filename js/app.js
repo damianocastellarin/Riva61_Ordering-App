@@ -60,7 +60,6 @@ window.addEventListener('auth-success', async (e) => {
         }
 
     } catch (error) {
-        console.error("Errore durante l'inizializzazione dei dati:", error);
         alert("Si è verificato un errore nel caricamento dei prodotti.");
     } finally {
         isLoadingAuth = false;

@@ -18,7 +18,6 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             );
 
             if (!userDoc.exists()) {
-                console.warn("Profilo non trovato nel database");
                 _redirectToLogin();
                 return;
             }
@@ -60,7 +59,6 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 }
             }
         } catch (error) {
-            console.error("Errore Auth:", error);
             _redirectToLogin();
         } finally {
             ui.hideLoader();
@@ -97,7 +95,6 @@ if (loginBtn) {
         try {
             await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
         } catch (e) {
-            console.error(e);
             ui.hideLoader();
             alert("Accesso fallito: credenziali errate.");
         }
@@ -127,7 +124,6 @@ document.addEventListener('click', async (e) => {
         }
         window.location.replace('./index.html');
     } catch (error) {
-        console.error(error);
         ui.hideLoader();
     }
 });
