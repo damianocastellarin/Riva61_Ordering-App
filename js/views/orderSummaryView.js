@@ -11,7 +11,7 @@ export const orderSummaryView = {
 
         if (container) container.classList.remove("hidden");
 
-        ["home", "step", "order-complete", "profile", "admin-content", "progressContainer"]
+        ["step", "order-complete", "profile", "admin-content", "progressContainer"]
             .forEach(id => document.getElementById(id)?.classList.add("hidden"));
 
         const prodottiOrdinati = prodottiData.filter(p => (parseInt(state.risposte[p.nome], 10) || 0) > 0);

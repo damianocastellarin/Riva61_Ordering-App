@@ -8,10 +8,9 @@ import { session } from './session.js';
 import { getIconHTML } from './icons.js';
 import { ui } from './ui.js';
 import { dataCache } from './services/dataCache.js';
-import { homeView } from './views/homeView.js';
-import { orderView } from './views/orderView.js';
 import { orderCompleteView } from './views/orderCompleteView.js';
 import { orderSummaryView } from './views/orderSummaryView.js';
+import { orderView } from './views/orderView.js';
 
 const adminView            = document.getElementById('admin-view');
 const adminContent         = document.getElementById('admin-content');
@@ -46,7 +45,7 @@ function guard(requiredRole = 'any') {
         return false;
     }
     if (requiredRole === 'superadmin' && !session.isSuperAdmin()) {
-        router.replace('#home');
+        router.replace('#order-summary');
         return false;
     }
     if (requiredRole === 'admin' && session.isSuperAdmin()) {
@@ -58,7 +57,6 @@ function guard(requiredRole = 'any') {
 
 function showAdminContent() {
     document.getElementById('app-content')?.classList.add('hidden');
-    document.getElementById('progressContainer')?.classList.add('hidden');
     if (adminContent) adminContent.classList.remove('hidden');
 }
 
@@ -72,7 +70,6 @@ router.add('#admin/categories', () => renderCategoryList());
 router.add('#admin/products',   () => renderProductList());
 router.add('#admin/profile',    () => renderAdminProfile());
 
-router.add('#home',           ()      => { showOrderContent(); homeView.render(CATEGORIE_DINAMICHE); });
 router.add('#step',           (param) => { showOrderContent(); orderView.render(CATEGORIE_DINAMICHE, param); });
 router.add('#order-complete', ()      => { showOrderContent(); orderCompleteView.render(CATEGORIE_DINAMICHE); });
 router.add('#order-summary',  ()      => { showOrderContent(); orderSummaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE); });
@@ -119,14 +116,10 @@ window.addEventListener('admin-bar-choice', async (e) => {
         await _loadOrderData(currentPath.barId);
         initRouterSafe();
         
-        router.replace('#home');
+        router.replace('#order-summary');
     } catch (err) {
         console.error("Errore precaricamento dati ordine:", err);
     }
-});
-
-window.addEventListener('bottomnav-user-order', () => {
-    router.replace('#home');
 });
 
 function showBreadcrumbs() {
@@ -177,7 +170,7 @@ async function renderBarList() {
 async function renderCategoryList() {
     if (!guard('any')) return;
     if (!currentPath.barId) {
-        router.replace(session.isSuperAdmin() ? '#admin/bars' : '#home');
+        router.replace(session.isSuperAdmin() ? '#admin/bars' : '#order-summary');
         return;
     }
     showAdminContent();
@@ -264,9 +257,7 @@ function renderAdminProfile() {
             <div class="profile-avatar">${getIconHTML('profile')}</div>
             <h2 class="profile-bar-name">${session.barName || 'Bar'}</h2>
             <span class="profile-role-badge">Amministratore</span>
-            ${session.email
-                ? `<p class="profile-email">${session.email}</p>`
-                : ''}
+            ${session.email ? `<p class="profile-email">${session.email}</p>` : ''}
         </div>
         <div class="profile-actions">
             <button id="logoutAdminBtn" class="btn-danger">
@@ -285,6 +276,11 @@ function _prepareCategories(prodottiScaricati) {
         nome:     nomeCat,
         prodotti: prodottiScaricati
             .filter(p => p.categoria === nomeCat)
-            .map(p => ({ nome: p.nome, unita: p.unita || '' }))
+            .map(p => ({ 
+                nome:      p.nome, 
+                unita:     p.unita || '',
+                fornitore: p.fornitore || '',
+                categoria: p.categoria
+            }))
     }));
 }

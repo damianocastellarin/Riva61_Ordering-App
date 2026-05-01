@@ -5,7 +5,6 @@ import { dbService } from "./services/db.js";
 import { router } from "./router.js";
 import { dataCache } from "./services/dataCache.js";
 
-import { homeView } from "./views/homeView.js";
 import { orderView } from "./views/orderView.js";
 import { orderCompleteView } from "./views/orderCompleteView.js";
 import { orderSummaryView } from "./views/orderSummaryView.js";
@@ -18,15 +17,10 @@ let isRouterInitialized = false;
 
 ui.initAdminButtons();
 
-router.add('#home',           ()      => homeView.render(CATEGORIE_DINAMICHE));
 router.add('#step',           (param) => orderView.render(CATEGORIE_DINAMICHE, param));
 router.add('#order-complete', ()      => orderCompleteView.render(CATEGORIE_DINAMICHE));
 router.add('#order-summary',  ()      => orderSummaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE));
 router.add('#profile',        ()      => profileView.render());
-
-window.addEventListener('bottomnav-user-order', () => {
-    router.replace('#home');
-});
 
 window.addEventListener('auth-success', async (e) => {
     if (isLoadingAuth) return;
@@ -62,7 +56,7 @@ window.addEventListener('auth-success', async (e) => {
                 router.replace(`#step/${state.stepIndex}`);
             }
         } else {
-            router.replace('#home');
+            router.replace('#order-summary');
         }
 
     } catch (error) {
@@ -84,9 +78,10 @@ function _prepareCategories(prodottiScaricati) {
         prodotti: prodottiScaricati
             .filter(p => p.categoria === nomeCat)
             .map(p => ({ 
-                nome: p.nome, 
-                unita: p.unita || '',
-                fornitore: p.fornitore || ''
+                nome:      p.nome, 
+                unita:     p.unita || '',
+                fornitore: p.fornitore || '',
+                categoria: p.categoria
             }))
     }));
 }

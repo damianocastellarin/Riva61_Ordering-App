@@ -11,13 +11,6 @@ export function getTabsForRole(role) {
 
 const ADMIN_TABS = [
     {
-        id:       'order',
-        icon:     'order',
-        label:    'Ordine',
-        hash:     '#home',
-        activeOn: ['#home', '#step', '#order-complete']
-    },
-    {
         id:       'order-summary',
         icon:     'summary',
         label:    'Riepilogo Ordine',
@@ -41,13 +34,6 @@ const ADMIN_TABS = [
 ];
 
 const USER_TABS = [
-    {
-        id:       'order',
-        icon:     'order',
-        label:    'Ordine',
-        hash:     '#home',
-        activeOn: ['#home', '#step', '#order-complete']
-    },
     {
         id:       'order-summary',
         icon:     'summary',
