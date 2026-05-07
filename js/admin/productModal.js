@@ -1,6 +1,7 @@
 import { ui } from '../ui.js';
 import { dbService } from '../services/db.js';
 import { router } from '../router.js';
+import { networkService } from '../services/networkService.js';
 
 const productModal       = document.getElementById('productModal');
 const modalTitle         = document.getElementById('modalTitle');
@@ -51,7 +52,9 @@ function _isDirty() {
 
 function _closeModal() {
     productModal.classList.add('hidden');
-    _initialValues           = null;
+    saveProductBtn.disabled = false;
+    saveProductBtn.style.opacity = "1";
+    _initialValues = null;
     _closingProgrammatically = false;
 }
 
@@ -84,6 +87,8 @@ export const productModalManager = {
         };
 
         saveProductBtn.onclick = async () => {
+            if (saveProductBtn.disabled) return;
+
             const barId     = currentBarId;
             const id        = modalProductId.value;
             const nome      = modalProdNome.value.trim();
@@ -93,6 +98,15 @@ export const productModalManager = {
 
             if (!categoria) return alert("La categoria è obbligatoria");
 
+            saveProductBtn.disabled = true;
+            saveProductBtn.style.opacity = "0.5";
+
+            const isOnline = await networkService.isOnline();
+            
+            if (!isOnline) {
+                alert("⚠️ Sei offline. L'azione verrà salvata localmente sul dispositivo e sincronizzata automaticamente appena tornerai online.");
+            }
+
             ui.showLoader();
             try {
                 const isOnlyCategory = groupNome.classList.contains('hidden');
@@ -101,26 +115,27 @@ export const productModalManager = {
                     if (oldCategoryName) {
                         await dbService.renameCategory(barId, oldCategoryName, categoria);
                     } else {
-                        const exists = existingCategories.find(
-                            c => c.nome.toLowerCase() === categoria.toLowerCase()
-                        );
+                        const exists = existingCategories.find(c => c.nome.toLowerCase() === categoria.toLowerCase());
                         if (exists) throw new Error("Questa categoria esiste già!");
-                        const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria);
-                        await window.fb.setDoc(catRef, { nome: categoria, createdAt: Date.now() });
+                        const catRef = window.fb.doc(window.fb.db, "bars", barId, "categorie", categoria.trim());
+                        await window.fb.setDoc(catRef, { nome: categoria.trim(), createdAt: Date.now() });
                     }
-                    _closeModal();
-                    router.navigate('#admin/categories');
                 } else {
                     if (!nome) throw new Error("Il nome del prodotto è obbligatorio");
                     await dbService.saveProduct(barId, id, {
                         nome, unita, categoria, fornitore, updatedAt: Date.now()
                     });
-                    _closeModal();
-                    router.navigate('#admin/products');
                 }
-                ui.showToast("Salvato con successo!");
+
+                _closeModal();
+                if (isOnline) ui.showToast("Salvato con successo!");
+                
+                router.navigate(isOnlyCategory ? '#admin/categories' : '#admin/products');
+
             } catch (e) {
                 alert(e.message || "Errore nel salvataggio");
+                saveProductBtn.disabled = false;
+                saveProductBtn.style.opacity = "1";
             } finally {
                 ui.hideLoader();
             }

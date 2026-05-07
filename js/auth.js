@@ -3,6 +3,7 @@ import { getIconHTML } from './icons.js';
 import { session } from './session.js';
 import { dataCache } from './services/dataCache.js';
 import { bottomNav } from './bottomNav/bottomNav.js';
+import { networkService } from './services/networkService.js';
 
 const isAdminPage = window.location.pathname.endsWith('admin.html');
 
@@ -59,7 +60,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 }
             }
         } catch (error) {
-            _redirectToLogin();
+            if (navigator.onLine) _redirectToLogin();
         } finally {
             ui.hideLoader();
         }
@@ -80,23 +81,25 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     }
 });
 
-const loginBtn = document.getElementById('loginBtn');
-const togglePassword = document.getElementById('togglePassword');
-const passwordInput = document.getElementById('login-password');
-
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
         
         if (!email || !password) return;
+
+        const isOnline = await networkService.isOnline();
+        if (!isOnline) {
+            alert("⚠️ Attenzione: Non puoi effettuare il login mentre sei offline. Controlla la tua connessione.");
+            return;
+        }
         
         ui.showLoader();
         try {
             await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
         } catch (e) {
             ui.hideLoader();
-            alert("Accesso fallito: credenziali errate.");
+            alert("Accesso fallito: credenziali errate o problema di rete.");
         }
     });
 }
@@ -125,6 +128,7 @@ document.addEventListener('click', async (e) => {
         window.location.replace('./index.html');
     } catch (error) {
         ui.hideLoader();
+        window.location.replace('./index.html');
     }
 });
 
