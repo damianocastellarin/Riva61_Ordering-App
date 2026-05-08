@@ -19,6 +19,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
             );
 
             if (!userDoc.exists()) {
+                console.warn("Profilo non trovato nel database");
                 _redirectToLogin();
                 return;
             }
@@ -51,6 +52,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                     session.set('user', userData.barId, userData.barName || null, email);
                     bottomNav.setup();
                     
+                    localStorage.setItem('lastBarId', userData.barId);
+                    
                     document.getElementById('login-container')?.classList.add('hidden');
                     document.getElementById('app-content')?.classList.remove('hidden');
                     
@@ -60,7 +63,8 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
                 }
             }
         } catch (error) {
-            if (navigator.onLine) _redirectToLogin();
+            console.error("Errore Auth:", error);
+            _redirectToLogin();
         } finally {
             ui.hideLoader();
         }
@@ -70,6 +74,7 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
         dataCache.clear();
         sessionStorage.removeItem("ordine_bar_salvato");
         sessionStorage.removeItem("admin_current_path");
+        localStorage.removeItem("lastBarId");
 
         if (isAdminPage) {
             _redirectToLogin();
@@ -81,25 +86,30 @@ window.fb.onAuthStateChanged(window.fb.auth, async (user) => {
     }
 });
 
+const loginBtn = document.getElementById('loginBtn');
+const togglePassword = document.getElementById('togglePassword');
+const passwordInput = document.getElementById('login-password');
+
 if (loginBtn) {
     loginBtn.addEventListener('click', async () => {
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-password').value;
         
         if (!email || !password) return;
-
+        
         const isOnline = await networkService.isOnline();
         if (!isOnline) {
-            alert("⚠️ Attenzione: Non puoi effettuare il login mentre sei offline. Controlla la tua connessione.");
+            alert("⚠️ Attenzione\n\nNon puoi effettuare il login mentre sei offline. Controlla la tua connessione e riprova.");
             return;
         }
-        
+
         ui.showLoader();
         try {
             await window.fb.signInWithEmailAndPassword(window.fb.auth, email, password);
         } catch (e) {
+            console.error(e);
             ui.hideLoader();
-            alert("Accesso fallito: credenziali errate o problema di rete.");
+            alert("Accesso fallito: credenziali errate.");
         }
     });
 }
@@ -125,10 +135,12 @@ document.addEventListener('click', async (e) => {
         if (isAdminPage) {
             sessionStorage.removeItem('admin_current_path');
         }
+        localStorage.removeItem('lastBarId');
         window.location.replace('./index.html');
     } catch (error) {
+        console.error(error);
+        alert("Errore durante il logout. Riprova.");
         ui.hideLoader();
-        window.location.replace('./index.html');
     }
 });
 
