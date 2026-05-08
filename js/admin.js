@@ -84,9 +84,14 @@ async function _loadOrderData(barId) {
         CATEGORIE_DINAMICHE = cached.categorie;
         return;
     }
-    PRODOTTI_DATA       = await dbService.getProducts(barId);
-    CATEGORIE_DINAMICHE = _prepareCategories(PRODOTTI_DATA);
-    dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
+    ui.showLoader();
+    try {
+        PRODOTTI_DATA       = await dbService.getProducts(barId);
+        CATEGORIE_DINAMICHE = _prepareCategories(PRODOTTI_DATA);
+        dataCache.set(barId, PRODOTTI_DATA, CATEGORIE_DINAMICHE);
+    } finally {
+        ui.hideLoader();
+    }
 }
 
 function initRouterSafe() {
@@ -115,16 +120,16 @@ window.addEventListener('admin-bar-choice', async (e) => {
     try {
         await _loadOrderData(currentPath.barId);
         initRouterSafe();
-        
         router.replace('#order-summary');
     } catch (err) {
+        console.error(err);
     }
 });
 
 function showBreadcrumbs() {
     breadcrumbsManager.render(breadcrumbsContainer, {
-        path:         currentPath,
-        isSuperAdmin: session.isSuperAdmin(),
+        path:          currentPath,
+        isSuperAdmin:  session.isSuperAdmin(),
         actions: {
             onGoBars:       () => router.replace('#admin/bars'),
             onGoHome:       () => router.replace('#admin/categories'),
@@ -141,6 +146,7 @@ async function renderBarList() {
     if (!guard('superadmin')) return;
     showAdminContent();
     const navId = router.currentRouteId();
+    ui.showLoader();
     try {
         currentPath = { ...DEFAULT_PATH };
         saveCurrentPath();
@@ -174,36 +180,44 @@ async function renderCategoryList() {
     }
     showAdminContent();
     const navId = router.currentRouteId();
-    try {
-        currentPath.category = '';
-        saveCurrentPath();
-        showBreadcrumbs();
-        adminView.innerHTML = '';
-        adminView.appendChild(uiComponents.createAddButton(
-            "Nuova Categoria",
-            () => productModalManager.open(currentPath.barId)
-        ));
 
-        const list = document.createElement('div');
-        list.className = "list-container";
-        adminView.appendChild(list);
+    currentPath.category = '';
+    saveCurrentPath();
+    showBreadcrumbs();
+    adminView.innerHTML = '';
+    adminView.appendChild(uiComponents.createAddButton(
+        "Nuova Categoria",
+        () => productModalManager.open(currentPath.barId)
+    ));
 
-        const categorie = await dbService.getCategories(currentPath.barId);
-        if (router.currentRouteId() !== navId) return;
+    const list = document.createElement('div');
+    list.className = "list-container";
+    adminView.appendChild(list);
 
-        categorie.forEach(cat => list.appendChild(uiComponents.createListItem(
-            cat.nome,
-            () => {
-                currentPath.category = cat.nome;
-                saveCurrentPath();
-                router.navigate('#admin/products');
-            },
-            () => adminActions.deleteCategory(currentPath.barId, cat.nome),
-            () => productModalManager.open(currentPath.barId, cat.nome, null, true)
-        )));
-    } finally {
-        if (router.currentRouteId() === navId) ui.hideLoader();
+    const cached = dataCache.get(currentPath.barId);
+    let categorie;
+
+    if (cached) {
+        categorie = cached.categorie;
+    } else {
+        ui.showLoader();
+        categorie = await dbService.getCategories(currentPath.barId);
     }
+
+    if (router.currentRouteId() !== navId) return;
+
+    categorie.forEach(cat => list.appendChild(uiComponents.createListItem(
+        cat.nome,
+        () => {
+            currentPath.category = cat.nome;
+            saveCurrentPath();
+            router.navigate('#admin/products');
+        },
+        () => adminActions.deleteCategory(currentPath.barId, cat.nome),
+        () => productModalManager.open(currentPath.barId, cat.nome, null, true)
+    )));
+    
+    ui.hideLoader();
 }
 
 async function renderProductList() {
@@ -214,34 +228,42 @@ async function renderProductList() {
     }
     showAdminContent();
     const navId = router.currentRouteId();
-    try {
-        showBreadcrumbs();
-        adminView.innerHTML = '';
-        adminView.appendChild(uiComponents.createAddButton(
-            "Nuovo Prodotto",
-            () => productModalManager.open(currentPath.barId, currentPath.category)
-        ));
 
-        const list = document.createElement('div');
-        list.className = "list-container";
-        adminView.appendChild(list);
+    showBreadcrumbs();
+    adminView.innerHTML = '';
+    adminView.appendChild(uiComponents.createAddButton(
+        "Nuovo Prodotto",
+        () => productModalManager.open(currentPath.barId, currentPath.category)
+    ));
 
-        const prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
-        if (router.currentRouteId() !== navId) return;
+    const list = document.createElement('div');
+    list.className = "list-container";
+    adminView.appendChild(list);
 
-        prodotti.forEach(p => list.appendChild(uiComponents.createListItem(
-            `<div>
-                <b>${p.nome}</b>
-                ${p.unita ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${p.unita}</span>` : ''}
-                <br><small>${p.fornitore}</small>
-            </div>`,
-            null,
-            () => adminActions.deleteProduct(currentPath.barId, p.id),
-            () => productModalManager.open(currentPath.barId, currentPath.category, p)
-        )));
-    } finally {
-        if (router.currentRouteId() === navId) ui.hideLoader();
+    const cached = dataCache.get(currentPath.barId);
+    let prodotti;
+
+    if (cached && cached.prodotti) {
+        prodotti = cached.prodotti.filter(p => p.categoria === currentPath.category);
+    } else {
+        ui.showLoader();
+        prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
     }
+
+    if (router.currentRouteId() !== navId) return;
+
+    prodotti.forEach(p => list.appendChild(uiComponents.createListItem(
+        `<div>
+            <b>${p.nome}</b>
+            ${p.unita ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${p.unita}</span>` : ''}
+            <br><small>${p.fornitore}</small>
+        </div>`,
+        null,
+        () => adminActions.deleteProduct(currentPath.barId, p.id),
+        () => productModalManager.open(currentPath.barId, currentPath.category, p)
+    )));
+    
+    ui.hideLoader();
 }
 
 function renderAdminProfile() {
@@ -277,7 +299,7 @@ function _prepareCategories(prodottiScaricati) {
             .filter(p => p.categoria === nomeCat)
             .map(p => ({ 
                 nome:      p.nome, 
-                unita:     p.unita || '',
+                unita:      p.unita || '',
                 fornitore: p.fornitore || '',
                 categoria: p.categoria
             }))

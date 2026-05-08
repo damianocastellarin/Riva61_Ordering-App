@@ -2,6 +2,7 @@ import { ui } from '../ui.js';
 import { dbService } from '../services/db.js';
 import { router } from '../router.js';
 import { networkService } from '../services/networkService.js';
+import { dataCache } from '../services/dataCache.js';
 
 const productModal       = document.getElementById('productModal');
 const modalTitle         = document.getElementById('modalTitle');
@@ -98,19 +99,8 @@ export const productModalManager = {
 
             if (!categoria) return alert("La categoria è obbligatoria");
 
-            saveProductBtn.disabled = true;
-            saveProductBtn.style.opacity = "0.5";
-
-            const isOnline = await networkService.isOnline();
-            
-            if (!isOnline) {
-                alert("⚠️ Sei offline. L'azione verrà salvata localmente sul dispositivo e sincronizzata automaticamente appena tornerai online.");
-            }
-
-            ui.showLoader();
-            try {
+            const performDbOperation = async () => {
                 const isOnlyCategory = groupNome.classList.contains('hidden');
-
                 if (isOnlyCategory) {
                     if (oldCategoryName) {
                         await dbService.renameCategory(barId, oldCategoryName, categoria);
@@ -126,12 +116,35 @@ export const productModalManager = {
                         nome, unita, categoria, fornitore, updatedAt: Date.now()
                     });
                 }
+                return isOnlyCategory;
+            };
 
+            saveProductBtn.disabled = true;
+            saveProductBtn.style.opacity = "0.5";
+
+            const isOnline = await networkService.isOnline();
+            
+            if (!isOnline) {
+                alert("⚠️ Sei offline. L'azione verrà salvata localmente sul dispositivo e sincronizzata automaticamente appena tornerai online.");
+                try {
+                    const wasCategory = groupNome.classList.contains('hidden');
+                    performDbOperation(); 
+                    _closingProgrammatically = true;
+                    _closeModal();
+                    history.back(); 
+                    router.navigate(wasCategory ? '#admin/categories' : '#admin/products');
+                } catch (err) { console.error(err); }
+                return; 
+            }
+
+            ui.showLoader();
+            try {
+                const wasCategory = await performDbOperation();
+                _closingProgrammatically = true;
                 _closeModal();
-                if (isOnline) ui.showToast("Salvato con successo!");
-                
-                router.navigate(isOnlyCategory ? '#admin/categories' : '#admin/products');
-
+                history.back();
+                ui.showToast("Salvato con successo!");
+                router.navigate(wasCategory ? '#admin/categories' : '#admin/products');
             } catch (e) {
                 alert(e.message || "Errore nel salvataggio");
                 saveProductBtn.disabled = false;
@@ -158,13 +171,12 @@ export const productModalManager = {
         }
     },
 
-    async open(barId, currentCategory = '', product = null, isEditCategory = false) {
+    open(barId, currentCategory = '', product = null, isEditCategory = false) {
         currentBarId    = barId;
         oldCategoryName = isEditCategory ? currentCategory : null;
 
-        ui.showLoader();
-        await this.updateSuggestions(barId);
-        ui.hideLoader();
+        productModal.classList.remove('hidden');
+        history.pushState({ modal: true }, '');
 
         groupNome.classList.remove('hidden');
         groupUnita.classList.remove('hidden');
@@ -206,21 +218,27 @@ export const productModalManager = {
             groupFornitore.classList.add('hidden');
         }
 
-        productModal.classList.remove('hidden');
-        history.pushState({ modal: true }, '');
         _saveInitialValues();
+
+        this.updateSuggestions(barId);
     },
 
     async updateSuggestions(barId) {
         try {
-            existingCategories = await dbService.getCategories(barId);
-            const products     = await dbService.getProducts(barId);
+            let cats, prods;
+            const cached = dataCache.get(barId);
 
-            const forns = [...new Set(products.map(p => p.fornitore).filter(Boolean))].sort();
+            if (cached) {
+                cats = cached.categorie;
+                prods = cached.prodotti;
+            } else {
+                cats = await dbService.getCategories(barId);
+                prods = await dbService.getProducts(barId);
+            }
 
-            const unitaDinamiche = [...new Set(
-                products.map(p => p.unita).filter(Boolean)
-            )].sort();
+            existingCategories = cats;
+            const forns = [...new Set(prods.map(p => p.fornitore).filter(Boolean))].sort();
+            const unitaDinamiche = [...new Set(prods.map(p => p.unita).filter(Boolean))].sort();
             const tutteUnita = [...new Set([...UNITA_FISSE, ...unitaDinamiche])].sort();
 
             selectUnitaQuick.innerHTML = '<option value="">-- Suggerimenti --</option>';
@@ -228,13 +246,12 @@ export const productModalManager = {
             selectFornQuick.innerHTML  = '<option value="">-- Esistenti --</option>';
 
             tutteUnita.forEach(u => selectUnitaQuick.add(new Option(u, u)));
-
             [...existingCategories]
                 .sort((a, b) => a.nome.localeCompare(b.nome))
                 .forEach(c => selectCatQuick.add(new Option(c.nome, c.nome)));
-
             forns.forEach(f => selectFornQuick.add(new Option(f, f)));
         } catch (e) {
+            console.error("Errore suggerimenti:", e);
         }
     }
 };
