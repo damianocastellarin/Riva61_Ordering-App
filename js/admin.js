@@ -70,15 +70,15 @@ router.add('#admin/categories', () => renderCategoryList());
 router.add('#admin/products',   () => renderProductList());
 router.add('#admin/profile',    () => renderAdminProfile());
 
-router.add('#step',           (param) => { showOrderContent(); orderView.render(CATEGORIE_DINAMICHE, param); });
+router.add('#step',            (param) => { showOrderContent(); orderView.render(CATEGORIE_DINAMICHE, param); });
 router.add('#order-complete', ()      => { showOrderContent(); orderCompleteView.render(CATEGORIE_DINAMICHE); });
 router.add('#order-summary',  ()      => { showOrderContent(); orderSummaryView.render(PRODOTTI_DATA, CATEGORIE_DINAMICHE); });
 
 ui.initAdminButtons();
 productModalManager.init();
 
-async function _loadOrderData(barId) {
-    const cached = dataCache.get(barId);
+async function _loadOrderData(barId, forceRefresh = false) {
+    const cached = forceRefresh ? null : dataCache.get(barId);
     if (cached) {
         PRODOTTI_DATA       = cached.prodotti;
         CATEGORIE_DINAMICHE = cached.categorie;
@@ -118,7 +118,7 @@ window.addEventListener('admin-bar-choice', async (e) => {
     saveCurrentPath();
     
     try {
-        await _loadOrderData(currentPath.barId);
+        await _loadOrderData(currentPath.barId, true);
         initRouterSafe();
         router.replace('#order-summary');
     } catch (err) {
@@ -194,30 +194,24 @@ async function renderCategoryList() {
     list.className = "list-container";
     adminView.appendChild(list);
 
-    const cached = dataCache.get(currentPath.barId);
-    let categorie;
+    ui.showLoader();
+    try {
+        const categorie = await dbService.getCategories(currentPath.barId);
+        if (router.currentRouteId() !== navId) return;
 
-    if (cached) {
-        categorie = cached.categorie;
-    } else {
-        ui.showLoader();
-        categorie = await dbService.getCategories(currentPath.barId);
+        categorie.forEach(cat => list.appendChild(uiComponents.createListItem(
+            cat.nome,
+            () => {
+                currentPath.category = cat.nome;
+                saveCurrentPath();
+                router.navigate('#admin/products');
+            },
+            () => adminActions.deleteCategory(currentPath.barId, cat.nome),
+            () => productModalManager.open(currentPath.barId, cat.nome, null, true)
+        )));
+    } finally {
+        ui.hideLoader();
     }
-
-    if (router.currentRouteId() !== navId) return;
-
-    categorie.forEach(cat => list.appendChild(uiComponents.createListItem(
-        cat.nome,
-        () => {
-            currentPath.category = cat.nome;
-            saveCurrentPath();
-            router.navigate('#admin/products');
-        },
-        () => adminActions.deleteCategory(currentPath.barId, cat.nome),
-        () => productModalManager.open(currentPath.barId, cat.nome, null, true)
-    )));
-    
-    ui.hideLoader();
 }
 
 async function renderProductList() {
@@ -240,30 +234,24 @@ async function renderProductList() {
     list.className = "list-container";
     adminView.appendChild(list);
 
-    const cached = dataCache.get(currentPath.barId);
-    let prodotti;
+    ui.showLoader();
+    try {
+        const prodottiScaricati = await dbService.getProducts(currentPath.barId, currentPath.category);
+        if (router.currentRouteId() !== navId) return;
 
-    if (cached && cached.prodotti) {
-        prodotti = cached.prodotti.filter(p => p.categoria === currentPath.category);
-    } else {
-        ui.showLoader();
-        prodotti = await dbService.getProducts(currentPath.barId, currentPath.category);
+        prodottiScaricati.forEach(p => list.appendChild(uiComponents.createListItem(
+            `<div>
+                <b>${p.nome}</b>
+                ${p.unita ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${p.unita}</span>` : ''}
+                <br><small>${p.fornitore}</small>
+            </div>`,
+            null,
+            () => adminActions.deleteProduct(currentPath.barId, p.id),
+            () => productModalManager.open(currentPath.barId, currentPath.category, p)
+        )));
+    } finally {
+        ui.hideLoader();
     }
-
-    if (router.currentRouteId() !== navId) return;
-
-    prodotti.forEach(p => list.appendChild(uiComponents.createListItem(
-        `<div>
-            <b>${p.nome}</b>
-            ${p.unita ? `<span style="color:var(--text-muted);font-size:0.8rem"> · ${p.unita}</span>` : ''}
-            <br><small>${p.fornitore}</small>
-        </div>`,
-        null,
-        () => adminActions.deleteProduct(currentPath.barId, p.id),
-        () => productModalManager.open(currentPath.barId, currentPath.category, p)
-    )));
-    
-    ui.hideLoader();
 }
 
 function renderAdminProfile() {
@@ -287,6 +275,11 @@ function renderAdminProfile() {
         </div>
     `;
     adminView.appendChild(card);
+    
+    const logoutBtn = document.getElementById('logoutAdminBtn');
+    if (logoutBtn) {
+        logoutBtn.onclick = () => adminActions.logout();
+    }
     ui.hideLoader();
 }
 

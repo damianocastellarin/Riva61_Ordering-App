@@ -28,7 +28,7 @@ const UNITA_FISSE = [
 
 let existingCategories       = [];
 let oldCategoryName          = null;
-let currentBarId             = null;
+let currentBarId               = null;
 let _initialValues           = null;
 let _closingProgrammatically = false;
 
@@ -116,6 +116,9 @@ export const productModalManager = {
                         nome, unita, categoria, fornitore, updatedAt: Date.now()
                     });
                 }
+                
+                dataCache.clear(); 
+                
                 return isOnlyCategory;
             };
 
@@ -125,10 +128,11 @@ export const productModalManager = {
             const isOnline = await networkService.isOnline();
             
             if (!isOnline) {
-                alert("⚠️ Sei offline. L'azione verrà salvata localmente sul dispositivo e sincronizzata automaticamente appena tornerai online.");
+                alert("⚠️ Sei offline. L'azione verrà salvata localmente e sincronizzata appena torni online.");
                 try {
                     const wasCategory = groupNome.classList.contains('hidden');
-                    performDbOperation(); 
+                    performDbOperation();
+                    dataCache.clear();
                     _closingProgrammatically = true;
                     _closeModal();
                     history.back(); 
@@ -219,7 +223,6 @@ export const productModalManager = {
         }
 
         _saveInitialValues();
-
         this.updateSuggestions(barId);
     },
 
